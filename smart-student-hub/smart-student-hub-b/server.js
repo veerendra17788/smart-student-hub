@@ -26,6 +26,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/dashboard", require("./routes/dashboard"));
 app.use("/api/activities", require("./routes/activity")); // ✅ New
 app.use("/api/faculty",  require("./routes/faculty"));
+app.use("/api/events", require("./routes/eventRoutes"));
 
 // Start server
 const PORT = process.env.PORT || 5000;
