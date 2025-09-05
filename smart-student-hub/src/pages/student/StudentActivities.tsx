@@ -10,15 +10,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Trophy, Upload, Calendar, CheckCircle, Clock, XCircle, Plus, Filter } from "lucide-react";
 import { useState, useEffect } from "react";
 
-
-
 const StudentActivities = () => {
-  // const [activitiesList, setActivitiesList] = useState<ActivityType[]>([]); // list from backend
   const [activities, setActivities] = useState<any[]>([]);
-  // const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false); // controls dialog open/close
+  const [open, setOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Fetch activities from backend
   const fetchActivities = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -27,16 +23,13 @@ const StudentActivities = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        setActivities(data.activities); // assume backend returns { activities: [...] }
+        setActivities(data.activities);
       } else {
         console.error(data.message);
       }
     } catch (err) {
       console.error(err);
-    } 
-    // finally {
-    //   setLoading(false);
-    // }
+    }
   };
 
   useEffect(() => {
@@ -67,38 +60,47 @@ const StudentActivities = () => {
     date: "",
     credits: "",
     description: "",
-    proofUrl: "", // file upload URL after uploading
   });
   
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
+
   const handleSubmit = async () => {
+    if (!selectedFile) {
+      alert("Please select a certificate file.");
+      return;
+    }
+
+    const data = new FormData();
+    data.append("title", formData.title);
+    data.append("type", formData.type);
+    data.append("date", formData.date);
+    data.append("credits", formData.credits);
+    data.append("description", formData.description);
+    data.append("certificate", selectedFile);
+
     try {
-      const token = localStorage.getItem("token"); // stored at login
-      const res = await fetch("http://localhost:5000/api/activities", {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/activities/upload-certificate", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: data,
       });
   
-      const data = await res.json();
-      console.log(formData);
+      const result = await res.json();
       if (res.ok) {
         alert("Activity submitted ✅");
-        setActivities(prev => [data.activity, ...prev]);
+        setActivities(prev => [result.activity, ...prev]);
         setOpen(false);
-        // Reset the form
-        setFormData({
-          title: "",
-          type: "",
-          date: "",
-          credits: "",
-          description: "",
-          proofUrl: "",
-          });
+        setFormData({ title: "", type: "", date: "", credits: "", description: "" });
+        setSelectedFile(null);
       } else {
-        alert(data.message || "Failed to submit");
+        alert(result.message || "Failed to submit");
       }
     } catch (err) {
       console.error(err);
@@ -108,7 +110,6 @@ const StudentActivities = () => {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Activities</h1>
@@ -165,11 +166,7 @@ const StudentActivities = () => {
                 </div>
                 <div>
                   <Label htmlFor="certificate">Upload Certificate/Proof</Label>
-                  <div className="border-2 border-dashed border-muted rounded-lg p-6 text-center">
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
-                    <p className="text-xs text-muted-foreground">PDF, JPG, PNG up to 10MB</p>
-                  </div>
+                  <Input id="certificate" type="file" onChange={handleFileChange} />
                 </div>
                 <div className="flex justify-end space-x-2">
                   <Button variant="outline">Cancel</Button>
@@ -180,8 +177,6 @@ const StudentActivities = () => {
           </Dialog>
         </div>
 
-        {/* Filters */}
-        
         <Card className="bg-gradient-card border-0 shadow-md">
           <CardContent className="pt-6">
             <div className="flex items-center space-x-4">
@@ -213,7 +208,6 @@ const StudentActivities = () => {
           </CardContent>
         </Card>
 
-        {/* Activities List */}
         <div className="grid gap-4">
           {activities.map((activity) => (
             <Card key={activity._id || activity.id} className="bg-gradient-card border-0 shadow-md hover:shadow-lg transition-shadow">
@@ -252,7 +246,6 @@ const StudentActivities = () => {
           ))}
         </div>
 
-        {/* Summary */}
         <Card className="bg-gradient-primary text-white border-0 shadow-lg">
           <CardHeader>
             <CardTitle>Activity Summary</CardTitle>
