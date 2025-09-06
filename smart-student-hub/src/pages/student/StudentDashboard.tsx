@@ -3,7 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Trophy, 
   Calendar, 
@@ -13,50 +16,86 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Plus
+  Plus,
+  Loader2
 } from "lucide-react";
 
 const StudentDashboard = () => {
-  const stats = [
-    { title: "Total Activities", value: "24", icon: Trophy, color: "text-primary" },
-    { title: "Approved", value: "18", icon: CheckCircle, color: "text-success" },
-    { title: "Pending", value: "4", icon: Clock, color: "text-warning" },
-    { title: "Credits Earned", value: "156", icon: Award, color: "text-secondary" },
-  ];
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const recentActivities = [
-    {
-      title: "Hackathon Winner - TechFest 2024",
-      status: "approved",
-      date: "2024-03-15",
-      credits: 15
-    },
-    {
-      title: "AWS Cloud Practitioner Certification",
-      status: "pending",
-      date: "2024-03-10",
-      credits: 10
-    },
-    {
-      title: "Internship at Microsoft",
-      status: "approved",
-      date: "2024-02-28",
-      credits: 25
+  // Fetch dashboard data from API
+  const fetchDashboardData = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setLoading(true);
+      const response = await fetch(`http://localhost:5000/api/dashboard/student/${user.id}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setDashboardData(data);
+      } else {
+        throw new Error(data.error || 'Failed to fetch dashboard data');
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const upcomingEvents = [
-    {
-      title: "AI/ML Workshop",
-      date: "2024-03-20",
-      type: "Workshop"
+  useEffect(() => {
+    fetchDashboardData();
+  }, [user]);
+
+  // Create stats array from fetched data
+  const stats = dashboardData ? [
+    { 
+      title: "Total Activities", 
+      value: dashboardData.stats.totalActivities.toString(), 
+      icon: Trophy, 
+      color: "text-primary" 
     },
-    {
-      title: "Career Fair 2024",
-      date: "2024-03-25",
-      type: "Event"
+    { 
+      title: "Approved", 
+      value: dashboardData.stats.approvedActivities.toString(), 
+      icon: CheckCircle, 
+      color: "text-success" 
+    },
+    { 
+      title: "Pending", 
+      value: dashboardData.stats.pendingActivities.toString(), 
+      icon: Clock, 
+      color: "text-warning" 
+    },
+    { 
+      title: "Credits Earned", 
+      value: dashboardData.stats.totalCredits.toString(), 
+      icon: Award, 
+      color: "text-secondary" 
+    },
+  ] : [];
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'approved':
+        return 'bg-success text-success-foreground';
+      case 'pending':
+        return 'bg-warning text-warning-foreground';
+      case 'rejected':
+        return 'bg-destructive text-destructive-foreground';
+      default:
+        return 'bg-secondary text-secondary-foreground';
     }
-  ];
+  };
 
   return (
     <AppLayout>
@@ -77,19 +116,35 @@ const StudentDashboard = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat) => (
-            <Card key={stat.title} className="bg-gradient-card border-0 shadow-md">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-3xl font-bold">{stat.value}</p>
+          {loading ? (
+            Array.from({ length: 4 }).map((_, index) => (
+              <Card key={index} className="bg-gradient-card border-0 shadow-md">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
+                      <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
                   </div>
-                  <stat.icon className={`h-8 w-8 ${stat.color}`} />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            stats.map((stat) => (
+              <Card key={stat.title} className="bg-gradient-card border-0 shadow-md">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">{stat.title}</p>
+                      <p className="text-3xl font-bold">{stat.value}</p>
+                    </div>
+                    <stat.icon className={`h-8 w-8 ${stat.color}`} />
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -104,32 +159,66 @@ const StudentDashboard = () => {
                 <CardDescription>Your latest submitted activities</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentActivities.map((activity, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-white/50 border">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{activity.title}</h4>
-                        <p className="text-sm text-muted-foreground">{activity.date}</p>
+                {loading ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-white/50 border">
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="h-6 bg-gray-200 rounded animate-pulse w-16"></div>
+                          <div className="h-6 bg-gray-200 rounded animate-pulse w-16"></div>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <Badge className="bg-primary-light text-primary">
-                          {activity.credits} credits
-                        </Badge>
-                        <Badge 
-                          variant={activity.status === "approved" ? "default" : "secondary"}
-                          className={activity.status === "approved" ? "bg-success text-success-foreground" : ""}
-                        >
-                          {activity.status}
-                        </Badge>
+                    ))}
+                  </div>
+                ) : dashboardData?.recentActivities?.length > 0 ? (
+                  <div className="space-y-4">
+                    {dashboardData.recentActivities.map((activity, index) => (
+                      <div key={activity.id || index} className="flex items-center justify-between p-4 rounded-lg bg-white/50 border">
+                        <div className="flex-1">
+                          <h4 className="font-medium">{activity.title}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(activity.date).toLocaleDateString()}
+                          </p>
+                          {activity.category && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {activity.category}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <Badge className="bg-primary-light text-primary">
+                            {activity.credits || 0} credits
+                          </Badge>
+                          <Badge className={getStatusBadgeClass(activity.status)}>
+                            {activity.status}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4">
-                  <Button variant="outline" asChild className="w-full">
-                    <Link to="/student/activities">View All Activities</Link>
-                  </Button>
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No activities yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Start by adding your first activity to track your progress.
+                    </p>
+                    <Button asChild>
+                      <Link to="/student/activities">Add Activity</Link>
+                    </Button>
+                  </div>
+                )}
+                {dashboardData?.recentActivities?.length > 0 && (
+                  <div className="mt-4">
+                    <Button variant="outline" asChild className="w-full">
+                      <Link to="/student/activities">View All Activities</Link>
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -145,22 +234,53 @@ const StudentDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span>Credits Progress</span>
-                      <span>78/100</span>
+                {loading ? (
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                      </div>
+                      <div className="h-2 bg-gray-200 rounded animate-pulse"></div>
                     </div>
-                    <Progress value={78} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span>Events Attended</span>
-                      <span>12/15</span>
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                      </div>
+                      <div className="h-2 bg-gray-200 rounded animate-pulse"></div>
                     </div>
-                    <Progress value={80} className="h-2" />
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Credits Progress</span>
+                        <span>
+                          {dashboardData?.progress?.credits?.current || 0}/
+                          {dashboardData?.progress?.credits?.target || 100}
+                        </span>
+                      </div>
+                      <Progress 
+                        value={dashboardData?.progress?.credits?.percentage || 0} 
+                        className="h-2" 
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Events Attended</span>
+                        <span>
+                          {dashboardData?.progress?.events?.attended || 0}/
+                          {dashboardData?.progress?.events?.registered || 0}
+                        </span>
+                      </div>
+                      <Progress 
+                        value={dashboardData?.progress?.events?.percentage || 0} 
+                        className="h-2" 
+                      />
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -173,17 +293,45 @@ const StudentDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {upcomingEvents.map((event, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/50 border">
-                      <div>
-                        <h5 className="font-medium text-sm">{event.title}</h5>
-                        <p className="text-xs text-muted-foreground">{event.date}</p>
+                {loading ? (
+                  <div className="space-y-3">
+                    {Array.from({ length: 2 }).map((_, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/50 border">
+                        <div>
+                          <div className="h-4 bg-gray-200 rounded animate-pulse mb-1"></div>
+                          <div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div>
+                        </div>
+                        <div className="h-6 bg-gray-200 rounded animate-pulse w-16"></div>
                       </div>
-                      <Badge variant="outline">{event.type}</Badge>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : dashboardData?.upcomingEvents?.length > 0 ? (
+                  <div className="space-y-3">
+                    {dashboardData.upcomingEvents.map((event, index) => (
+                      <div key={event.id || index} className="flex items-center justify-between p-3 rounded-lg bg-white/50 border">
+                        <div>
+                          <h5 className="font-medium text-sm">{event.title}</h5>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(event.date).toLocaleDateString()}
+                          </p>
+                          {event.time && (
+                            <p className="text-xs text-muted-foreground">
+                              {event.time}
+                            </p>
+                          )}
+                        </div>
+                        <Badge variant="outline">{event.type}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      No upcoming events registered
+                    </p>
+                  </div>
+                )}
                 <Button variant="outline" asChild className="w-full mt-4">
                   <Link to="/student/events">View All Events</Link>
                 </Button>

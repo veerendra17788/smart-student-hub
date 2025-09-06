@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{personalInfo.name}} - Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family={{fonts.heading}}:wght@400;500;600;700&family={{fonts.body}}:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: {{colors.primary}};
+            --secondary-color: {{colors.secondary}};
+            --accent-color: {{colors.accent}};
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --border-color: #dee2e6;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: '{{fonts.body}}', Georgia, serif;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            background: var(--bg-primary);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Header Section */
+        .header {
+            background: var(--bg-primary);
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .profile-section {
+            margin-bottom: 2rem;
+        }
+
+        .profile-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            border: 3px solid var(--primary-color);
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .header h1 {
+            font-family: '{{fonts.heading}}', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .contact-item:hover {
+            background: var(--bg-secondary);
+            color: var(--primary-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            font-family: '{{fonts.heading}}', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title i {
+            font-size: 1.25rem;
+        }
+
+        /* Bio Section */
+        .bio {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+            text-align: justify;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent-color);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Two Column Layout */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        /* Skills Section */
+        .skills-category {
+            margin-bottom: 1.5rem;
+        }
+
+        .skills-category h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .skill-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .skill-list li {
+            padding: 0.25rem 0;
+            color: var(--text-secondary);
+            position: relative;
+            padding-left: 1rem;
+        }
+
+        .skill-list li::before {
+            content: '▪';
+            color: var(--primary-color);
+            position: absolute;
+            left: 0;
+        }
+
+        /* Experience & Education */
+        .timeline-item {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .timeline-item:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .timeline-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .timeline-subtitle {
+            color: var(--primary-color);
+            font-weight: 500;
+            font-style: italic;
+        }
+
+        .timeline-date {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .timeline-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        /* Projects */
+        .project-item {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-primary);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .project-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .project-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .project-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .project-link:hover {
+            text-decoration: underline;
+        }
+
+        .project-description {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .project-tech {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .project-tech strong {
+            color: var(--text-primary);
+        }
+
+        /* Activities & Achievements */
+        .activity-item, .achievement-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dotted var(--border-color);
+        }
+
+        .activity-item:last-child, .achievement-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .activity-title, .achievement-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .activity-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .activity-type {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .activity-credits {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .activity-description, .achievement-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-top: 0.5rem;
+        }
+
+        /* Certificates */
+        .certificate-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-secondary);
+        }
+
+        .certificate-info {
+            flex: 1;
+        }
+
+        .certificate-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .certificate-issuer {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .certificate-date {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .certificate-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .verified {
+            color: var(--accent-color);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text-primary);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+            }
+
+            .header {
+                padding: 2rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .timeline-header,
+            .project-header,
+            .activity-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .certificate-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .container {
+                box-shadow: none;
+                border: none;
+                margin: 0;
+            }
+            
+            .section {
+                break-inside: avoid;
+            }
+            
+            .project-item,
+            .timeline-item {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        {{#if sections.personalInfo}}
+        <header class="header">
+            <div class="profile-section">
+                <div class="profile-image">
+                    {{#if personalInfo.profileImage}}
+                        <img src="{{personalInfo.profileImage}}" alt="{{personalInfo.name}}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                    {{else}}
+                        {{substring personalInfo.name 0 2}}
+                    {{/if}}
+                </div>
+                <h1>{{personalInfo.name}}</h1>
+                <p class="subtitle">{{personalInfo.bio}}</p>
+            </div>
+            
+            {{#if settings.showContact}}
+            <div class="contact-grid">
+                {{#if personalInfo.email}}
+                <a href="mailto:{{personalInfo.email}}" class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    {{personalInfo.email}}
+                </a>
+                {{/if}}
+                {{#if personalInfo.phone}}
+                <a href="tel:{{personalInfo.phone}}" class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    {{personalInfo.phone}}
+                </a>
+                {{/if}}
+                {{#if personalInfo.location}}
+                <span class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{personalInfo.location}}
+                </span>
+                {{/if}}
+                {{#if personalInfo.website}}
+                <a href="{{personalInfo.website}}" class="contact-item" target="_blank">
+                    <i class="fas fa-globe"></i>
+                    Website
+                </a>
+                {{/if}}
+                {{#if personalInfo.linkedin}}
+                <a href="{{personalInfo.linkedin}}" class="contact-item" target="_blank">
+                    <i class="fab fa-linkedin"></i>
+                    LinkedIn
+                </a>
+                {{/if}}
+                {{#if personalInfo.github}}
+                <a href="{{personalInfo.github}}" class="contact-item" target="_blank">
+                    <i class="fab fa-github"></i>
+                    GitHub
+                </a>
+                {{/if}}
+            </div>
+            {{/if}}
+        </header>
+        {{/if}}
+
+        <main class="main-content">
+            <!-- Professional Summary -->
+            {{#if personalInfo.bio}}
+            <section class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-user"></i>
+                    Professional Summary
+                </h2>
+                <div class="bio">{{personalInfo.bio}}</div>
+            </section>
+            {{/if}}
+
+            <div class="two-column">
+                <div>
+                    <!-- Education Section -->
+                    {{#if sections.education}}
+                    {{#if education}}
+                    <section class="section">
+                        <h2 class="section-title">
+                            <i class="fas fa-graduation-cap"></i>
+                            Education
+                        </h2>
+                        {{#each education}}
+                        <div class="timeline-item">
+                            <div class="timeline-header">
+                                <div>
+                                    <div class="timeline-title">{{degree}} in {{field}}</div>
+                                    <div class="timeline-subtitle">{{institution}}</div>
+                                </div>
+                                <div class="timeline-date">{{formatDate startDate}} - {{formatDate endDate}}</div>
+                            </div>
+                            {{#if description}}
+                            <div class="timeline-description">{{description}}</div>
+                            {{/if}}
+                            {{#if grade}}
+                            <div style="margin-top: 0.5rem; color: var(--accent-color); font-weight: 600;">Grade: {{grade}}</div>
+                            {{/if}}
+                        </div>
+                        {{/each}}
+                    </section>
+                    {{/if}}
+                    {{/if}}
+
+                    <!-- Skills Section -->
+                    {{#if sections.skills}}
+                    {{#if skills}}
+                    <section class="section">
+                        <h2 class="section-title">
+                            <i class="fas fa-cogs"></i>
+                            Skills & Competencies
+                        </h2>
+                        {{#if skills.technical}}
+                        <div class="skills-category">
+                            <h4>Technical Skills</h4>
+                            <ul class="skill-list">
+                                {{#each skills.technical}}
+                                <li>{{this}}</li>
+                                {{/each}}
+                            </ul>
+                        </div>
+                        {{/if}}
+                        {{#if skills.soft}}
+                        <div class="skills-category">
+                            <h4>Soft Skills</h4>
+                            <ul class="skill-list">
+                                {{#each skills.soft}}
+                                <li>{{this}}</li>
+                                {{/each}}
+                            </ul>
+                        </div>
+                        {{/if}}
+                        {{#if skills.languages}}
+                        <div class="skills-category">
+                            <h4>Languages</h4>
+                            <ul class="skill-list">
+                                {{#each skills.languages}}
+                                <li>{{this}}</li>
+                                {{/each}}
+                            </ul>
+                        </div>
+                        {{/if}}
+                    </section>
+                    {{/if}}
+                    {{/if}}
+                </div>
+
+                <div>
+                    <!-- Experience Section -->
+                    {{#if sections.experience}}
+                    {{#if experience}}
+                    <section class="section">
+                        <h2 class="section-title">
+                            <i class="fas fa-briefcase"></i>
+                            Professional Experience
+                        </h2>
+                        {{#each experience}}
+                        <div class="timeline-item">
+                            <div class="timeline-header">
+                                <div>
+                                    <div class="timeline-title">{{position}}</div>
+                                    <div class="timeline-subtitle">{{company}} - {{location}}</div>
+                                </div>
+                                <div class="timeline-date">
+                                    {{formatDate startDate}} - {{#if current}}Present{{else}}{{formatDate endDate}}{{/if}}
+                                </div>
+                            </div>
+                            {{#if description}}
+                            <div class="timeline-description">{{description}}</div>
+                            {{/if}}
+                            {{#if technologies}}
+                            <div style="margin-top: 0.75rem;">
+                                <strong>Technologies:</strong> {{join technologies ", "}}
+                            </div>
+                            {{/if}}
+                        </div>
+                        {{/each}}
+                    </section>
+                    {{/if}}
+                    {{/if}}
+
+                    <!-- Certifications Section -->
+                    {{#if sections.certificates}}
+                    {{#if certificates}}
+                    <section class="section">
+                        <h2 class="section-title">
+                            <i class="fas fa-certificate"></i>
+                            Certifications
+                        </h2>
+                        {{#each certificates}}
+                        <div class="certificate-item">
+                            <div class="certificate-info">
+                                <div class="certificate-title">{{title}}</div>
+                                <div class="certificate-issuer">{{issuer}}</div>
+                                {{#if issueDate}}
+                                <div class="certificate-date">Issued: {{formatDate issueDate}}</div>
+                                {{/if}}
+                            </div>
+                            <div class="certificate-status">
+                                {{#if verified}}
+                                <span class="verified">
+                                    <i class="fas fa-check-circle"></i> Verified
+                                </span>
+                                {{else}}
+                                <span style="color: var(--text-secondary);">
+                                    <i class="fas fa-clock"></i> Pending
+                                </span>
+                                {{/if}}
+                            </div>
+                        </div>
+                        {{/each}}
+                    </section>
+                    {{/if}}
+                    {{/if}}
+                </div>
+            </div>
+
+            <!-- Projects Section -->
+            {{#if sections.projects}}
+            {{#if projects}}
+            <section class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-project-diagram"></i>
+                    Notable Projects
+                </h2>
+                {{#each projects}}
+                <div class="project-item">
+                    <div class="project-header">
+                        <h3 class="project-title">{{title}}</h3>
+                        <div class="project-links">
+                            {{#if githubUrl}}
+                            <a href="{{githubUrl}}" class="project-link" target="_blank">
+                                <i class="fab fa-github"></i> Code
+                            </a>
+                            {{/if}}
+                            {{#if liveUrl}}
+                            <a href="{{liveUrl}}" class="project-link" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Live Demo
+                            </a>
+                            {{/if}}
+                        </div>
+                    </div>
+                    <div class="project-description">{{description}}</div>
+                    {{#if technologies}}
+                    <div class="project-tech">
+                        <strong>Technologies Used:</strong> {{join technologies ", "}}
+                    </div>
+                    {{/if}}
+                </div>
+                {{/each}}
+            </section>
+            {{/if}}
+            {{/if}}
+
+            <!-- Activities Section -->
+            {{#if sections.activities}}
+            {{#if activities}}
+            <section class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-trophy"></i>
+                    Activities & Achievements
+                </h2>
+                {{#each activities}}
+                <div class="activity-item">
+                    <div class="activity-header">
+                        <div class="activity-title">{{title}}</div>
+                        <div class="activity-meta">
+                            <span class="activity-type">{{type}}</span>
+                            <span class="activity-credits">{{credits}} credits</span>
+                        </div>
+                    </div>
+                    <div class="activity-description">{{description}}</div>
+                </div>
+                {{/each}}
+            </section>
+            {{/if}}
+            {{/if}}
+
+            <!-- Achievements Section -->
+            {{#if sections.achievements}}
+            {{#if achievements}}
+            <section class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-award"></i>
+                    Notable Achievements
+                </h2>
+                {{#each achievements}}
+                <div class="achievement-item">
+                    <div class="achievement-title">{{title}}</div>
+                    <div class="achievement-description">{{description}}</div>
+                    {{#if issuer}}
+                    <div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+                        <strong>Issued by:</strong> {{issuer}}
+                    </div>
+                    {{/if}}
+                </div>
+                {{/each}}
+            </section>
+            {{/if}}
+            {{/if}}
+        </main>
+
+        {{#unless isPublic}}
+        <footer class="footer">
+            Generated by Smart Student Hub Portfolio System
+        </footer>
+        {{/unless}}
+    </div>
+
+    <script>
+        // Helper functions for Handlebars
+        Handlebars.registerHelper('formatDate', function(date) {
+            if (!date) return '';
+            return new Date(date).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short' 
+            });
+        });
+
+        Handlebars.registerHelper('substring', function(str, start, length) {
+            if (!str) return '';
+            return str.substring(start, start + length).toUpperCase();
+        });
+
+        Handlebars.registerHelper('join', function(array, separator) {
+            if (!array || !Array.isArray(array)) return '';
+            return array.join(separator);
+        });
+    </script>
+</body>
+</html>
