@@ -17,36 +17,55 @@ import {
   CheckCircle,
   AlertCircle,
   Plus,
-  Loader2
+  Loader2,
+  User,
+  GraduationCap,
+  BookOpen,
+  BarChart3,
+  Target,
+  MapPin
 } from "lucide-react";
+import { 
+  studentApi, 
+  DashboardData, 
+  calculateAttendanceStatus, 
+  formatDate,
+  mockDashboardData 
+} from "@/services/studentApi";
 
 const StudentDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch dashboard data from API
   const fetchDashboardData = async () => {
-    if (!user?.id) return;
+    if (!user?.rollNumber) {
+      // Use mock data for development if no roll number
+      setDashboardData(mockDashboardData);
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/dashboard/student/${user.id}`);
-      const data = await response.json();
+      const response = await studentApi.getDashboardData(user.rollNumber);
       
-      if (response.ok) {
-        setDashboardData(data);
+      if (response.success && response.data) {
+        setDashboardData(response.data);
       } else {
-        throw new Error(data.error || 'Failed to fetch dashboard data');
+        throw new Error(response.error || 'Failed to fetch dashboard data');
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast({
         title: "Error",
-        description: "Failed to load dashboard data. Please try again.",
+        description: "Failed to load dashboard data. Using sample data.",
         variant: "destructive"
       });
+      // Fallback to mock data
+      setDashboardData(mockDashboardData);
     } finally {
       setLoading(false);
     }
@@ -59,42 +78,53 @@ const StudentDashboard = () => {
   // Create stats array from fetched data
   const stats = dashboardData ? [
     { 
-      title: "Total Activities", 
-      value: dashboardData.stats.totalActivities.toString(), 
-      icon: Trophy, 
-      color: "text-primary" 
+      title: "CGPA", 
+      value: dashboardData.academic.cgpa.toFixed(2), 
+      icon: GraduationCap, 
+      color: "text-primary",
+      description: "Current CGPA"
     },
     { 
-      title: "Approved", 
-      value: dashboardData.stats.approvedActivities.toString(), 
+      title: "Attendance", 
+      value: `${dashboardData.attendance.overall}%`, 
       icon: CheckCircle, 
-      color: "text-success" 
+      color: dashboardData.attendance.overall >= 75 ? "text-green-600" : "text-red-600",
+      description: "Overall attendance"
     },
     { 
-      title: "Pending", 
-      value: dashboardData.stats.pendingActivities.toString(), 
-      icon: Clock, 
-      color: "text-warning" 
+      title: "Activities", 
+      value: dashboardData.activities.length.toString(), 
+      icon: Trophy, 
+      color: "text-blue-600",
+      description: "Total activities"
     },
     { 
-      title: "Credits Earned", 
-      value: dashboardData.stats.totalCredits.toString(), 
-      icon: Award, 
-      color: "text-secondary" 
+      title: "Semester", 
+      value: dashboardData.academic.currentSemester.toString(), 
+      icon: BookOpen, 
+      color: "text-purple-600",
+      description: "Current semester"
     },
   ] : [];
 
-  const getStatusBadgeClass = (status) => {
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case 'approved':
-        return 'bg-success text-success-foreground';
-      case 'pending':
-        return 'bg-warning text-warning-foreground';
-      case 'rejected':
-        return 'bg-destructive text-destructive-foreground';
+      case 'completed':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'ongoing':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'planned':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default:
-        return 'bg-secondary text-secondary-foreground';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const getAttendanceColor = (percentage: number) => {
+    if (percentage >= 90) return 'text-green-600';
+    if (percentage >= 80) return 'text-blue-600';
+    if (percentage >= 75) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
   return (
@@ -103,15 +133,33 @@ const StudentDashboard = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back! Here's your activity overview.</p>
+            <h1 className="text-3xl font-bold">Student Dashboard</h1>
+            <p className="text-muted-foreground">
+              {dashboardData ? `Welcome back, ${dashboardData.profile.name}!` : 'Welcome back!'}
+            </p>
+            {dashboardData && (
+              <div className="flex items-center mt-2 text-sm text-muted-foreground">
+                <User className="h-4 w-4 mr-1" />
+                {dashboardData.profile.rollNumber} • {dashboardData.profile.department}
+                <MapPin className="h-4 w-4 ml-3 mr-1" />
+                Year {dashboardData.profile.year}, Section {dashboardData.profile.section}
+              </div>
+            )}
           </div>
-          <Button asChild>
-            <Link to="/student/activities">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Activity
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/student/portfolio">
+                <FileText className="mr-2 h-4 w-4" />
+                Portfolio
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/student/activities">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Activity
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -132,12 +180,13 @@ const StudentDashboard = () => {
             ))
           ) : (
             stats.map((stat) => (
-              <Card key={stat.title} className="bg-gradient-card border-0 shadow-md">
+              <Card key={stat.title} className="bg-gradient-card border-0 shadow-md hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">{stat.title}</p>
+                      <p className="text-sm text-muted-foreground">{stat.description}</p>
                       <p className="text-3xl font-bold">{stat.value}</p>
+                      <p className="text-lg font-semibold mt-1">{stat.title}</p>
                     </div>
                     <stat.icon className={`h-8 w-8 ${stat.color}`} />
                   </div>
@@ -156,7 +205,7 @@ const StudentDashboard = () => {
                   <Trophy className="mr-2 h-5 w-5" />
                   Recent Activities
                 </CardTitle>
-                <CardDescription>Your latest submitted activities</CardDescription>
+                <CardDescription>Your latest activities and achievements</CardDescription>
               </CardHeader>
               <CardContent>
                 {loading ? (
@@ -174,25 +223,27 @@ const StudentDashboard = () => {
                       </div>
                     ))}
                   </div>
-                ) : dashboardData?.recentActivities?.length > 0 ? (
+                ) : dashboardData?.activities?.length > 0 ? (
                   <div className="space-y-4">
-                    {dashboardData.recentActivities.map((activity, index) => (
-                      <div key={activity.id || index} className="flex items-center justify-between p-4 rounded-lg bg-white/50 border">
+                    {dashboardData.activities.slice(0, 5).map((activity, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-white/50 border hover:bg-white/70 transition-colors">
                         <div className="flex-1">
                           <h4 className="font-medium">{activity.title}</h4>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(activity.date).toLocaleDateString()}
+                            {activity.organization && `${activity.organization} • `}
+                            {activity.startDate && formatDate(activity.startDate)}
                           </p>
-                          {activity.category && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {activity.category}
-                            </p>
-                          )}
+                          <p className="text-xs text-muted-foreground mt-1 capitalize">
+                            {activity.type}
+                            {activity.skills && activity.skills.length > 0 && (
+                              <span className="ml-2">
+                                Skills: {activity.skills.slice(0, 2).join(', ')}
+                                {activity.skills.length > 2 && ` +${activity.skills.length - 2} more`}
+                              </span>
+                            )}
+                          </p>
                         </div>
-                        <div className="flex items-center space-x-4">
-                          <Badge className="bg-primary-light text-primary">
-                            {activity.credits || 0} credits
-                          </Badge>
+                        <div className="flex items-center space-x-2">
                           <Badge className={getStatusBadgeClass(activity.status)}>
                             {activity.status}
                           </Badge>
@@ -212,7 +263,7 @@ const StudentDashboard = () => {
                     </Button>
                   </div>
                 )}
-                {dashboardData?.recentActivities?.length > 0 && (
+                {dashboardData?.activities?.length > 0 && (
                   <div className="mt-4">
                     <Button variant="outline" asChild className="w-full">
                       <Link to="/student/activities">View All Activities</Link>
@@ -225,12 +276,12 @@ const StudentDashboard = () => {
 
           {/* Sidebar Cards */}
           <div className="space-y-6">
-            {/* Progress Card */}
+            {/* Attendance Card */}
             <Card className="bg-gradient-card border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <TrendingUp className="mr-2 h-5 w-5" />
-                  This Semester
+                  <BarChart3 className="mr-2 h-5 w-5" />
+                  Attendance Overview
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -243,98 +294,108 @@ const StudentDashboard = () => {
                       </div>
                       <div className="h-2 bg-gray-200 rounded animate-pulse"></div>
                     </div>
-                    <div>
+                  </div>
+                ) : dashboardData?.attendance?.subjects?.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="mb-4">
                       <div className="flex justify-between text-sm mb-2">
-                        <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
-                        <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                        <span className="font-medium">Overall Attendance</span>
+                        <span className={`font-bold ${getAttendanceColor(dashboardData.attendance.overall)}`}>
+                          {dashboardData.attendance.overall}%
+                        </span>
                       </div>
-                      <div className="h-2 bg-gray-200 rounded animate-pulse"></div>
+                      <Progress 
+                        value={dashboardData.attendance.overall} 
+                        className="h-3" 
+                      />
                     </div>
+                    {dashboardData.attendance.subjects.slice(0, 3).map((subject, index) => (
+                      <div key={index}>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="truncate">{subject.subjectName}</span>
+                          <span className={`font-medium ${getAttendanceColor(subject.attendancePercentage)}`}>
+                            {subject.attendancePercentage}%
+                          </span>
+                        </div>
+                        <Progress 
+                          value={subject.attendancePercentage} 
+                          className="h-2" 
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {subject.attendedClasses}/{subject.totalClasses} classes
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Credits Progress</span>
-                        <span>
-                          {dashboardData?.progress?.credits?.current || 0}/
-                          {dashboardData?.progress?.credits?.target || 100}
-                        </span>
-                      </div>
-                      <Progress 
-                        value={dashboardData?.progress?.credits?.percentage || 0} 
-                        className="h-2" 
-                      />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Events Attended</span>
-                        <span>
-                          {dashboardData?.progress?.events?.attended || 0}/
-                          {dashboardData?.progress?.events?.registered || 0}
-                        </span>
-                      </div>
-                      <Progress 
-                        value={dashboardData?.progress?.events?.percentage || 0} 
-                        className="h-2" 
-                      />
-                    </div>
+                  <div className="text-center py-4">
+                    <BarChart3 className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No attendance data available</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Upcoming Events */}
+            {/* Academic Performance */}
             <Card className="bg-gradient-card border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Calendar className="mr-2 h-5 w-5" />
-                  Upcoming Events
+                  <GraduationCap className="mr-2 h-5 w-5" />
+                  Academic Performance
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {loading ? (
                   <div className="space-y-3">
-                    {Array.from({ length: 2 }).map((_, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/50 border">
-                        <div>
-                          <div className="h-4 bg-gray-200 rounded animate-pulse mb-1"></div>
-                          <div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div>
-                        </div>
-                        <div className="h-6 bg-gray-200 rounded animate-pulse w-16"></div>
-                      </div>
-                    ))}
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 rounded animate-pulse w-20"></div>
                   </div>
-                ) : dashboardData?.upcomingEvents?.length > 0 ? (
-                  <div className="space-y-3">
-                    {dashboardData.upcomingEvents.map((event, index) => (
-                      <div key={event.id || index} className="flex items-center justify-between p-3 rounded-lg bg-white/50 border">
-                        <div>
-                          <h5 className="font-medium text-sm">{event.title}</h5>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(event.date).toLocaleDateString()}
-                          </p>
-                          {event.time && (
-                            <p className="text-xs text-muted-foreground">
-                              {event.time}
-                            </p>
-                          )}
-                        </div>
-                        <Badge variant="outline">{event.type}</Badge>
+                ) : dashboardData ? (
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-primary mb-1">
+                        {dashboardData.academic.cgpa.toFixed(2)}
                       </div>
-                    ))}
+                      <p className="text-sm text-muted-foreground">Current CGPA</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Year</span>
+                        <span className="font-medium">{dashboardData.profile.year}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Semester</span>
+                        <span className="font-medium">{dashboardData.academic.currentSemester}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Department</span>
+                        <span className="font-medium text-xs">{dashboardData.profile.department}</span>
+                      </div>
+                    </div>
+
+                    {dashboardData.academic.semesterGrades.length > 0 && (
+                      <div className="mt-4">
+                        <h6 className="text-sm font-medium mb-2">Recent Semester</h6>
+                        <div className="bg-white/50 rounded-lg p-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Semester {dashboardData.academic.semesterGrades[dashboardData.academic.semesterGrades.length - 1].semester}</span>
+                            <span className="font-bold text-primary">
+                              {dashboardData.academic.semesterGrades[dashboardData.academic.semesterGrades.length - 1].sgpa.toFixed(2)} SGPA
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-6">
-                    <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <GraduationCap className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">
-                      No upcoming events registered
+                      No academic data available
                     </p>
                   </div>
                 )}
-                <Button variant="outline" asChild className="w-full mt-4">
-                  <Link to="/student/events">View All Events</Link>
-                </Button>
               </CardContent>
             </Card>
 

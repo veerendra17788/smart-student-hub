@@ -28,6 +28,8 @@ app.use("/api/activities", require("./routes/activity")); // ✅ New
 app.use("/api/faculty",  require("./routes/faculty"));
 app.use("/api/events", require("./routes/eventRoutes"));
 app.use("/api/portfolio", require("./routes/portfolio")); // ✅ Portfolio Routes
+app.use("/api/student", require("./routes/student")); // ✅ Student Dashboard Routes
+app.use("/api/faculty", require("./routes/facultyStudent")); // ✅ Faculty Student Management Routes
 
 // Start server
 const PORT = process.env.PORT || 5000;

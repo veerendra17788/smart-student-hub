@@ -42,10 +42,12 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     if (user?.role === "student") {
       return [
         { icon: Home, label: "Dashboard", path: "/student/dashboard" },
-        { icon: User, label: "Profile", path: "/student/profile" },
+        { icon: GraduationCap, label: "Academics", path: "/student/academics" },
+        { icon: BarChart3, label: "Attendance", path: "/student/attendance" },
         { icon: Trophy, label: "Activities", path: "/student/activities" },
         { icon: FileText, label: "Portfolio", path: "/student/portfolio" },
         { icon: Calendar, label: "Events", path: "/student/events" },
+        { icon: User, label: "Profile", path: "/student/profile" },
         { icon: Lightbulb, label: "Recommendations", path: "/student/recommendations" },
       ];
     } else if (user?.role === "faculty") {
