@@ -23,14 +23,16 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
+app.use("/api/activity", require("./routes/activity"));
 app.use("/api/dashboard", require("./routes/dashboard"));
-app.use("/api/activities", require("./routes/activity")); // ✅ New
-app.use("/api/faculty",  require("./routes/faculty"));
+app.use("/api/student", require("./routes/student"));
+app.use("/api/faculty", require("./routes/faculty"));
+app.use("/api/faculty", require("./routes/facultyStudent"));
+app.use("/api/faculty/dashboard", require("./routes/facultyDashboard"));
+app.use("/api/faculty/analytics", require("./routes/facultyAnalytics"));
+app.use("/api/portfolio", require("./routes/portfolio"));
 app.use("/api/events", require("./routes/eventRoutes"));
-app.use("/api/portfolio", require("./routes/portfolio")); // ✅ Portfolio Routes
-app.use("/api/student", require("./routes/student")); // ✅ Student Dashboard Routes
-app.use("/api/faculty", require("./routes/facultyStudent")); // ✅ Faculty Student Management Routes
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port   http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port http://localhost:${PORT}`));

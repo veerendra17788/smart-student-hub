@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { 
   CheckSquare, 
   Users, 
@@ -12,57 +13,136 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from "lucide-react";
 
+interface DashboardStats {
+  pendingApprovals: number;
+  totalStudents: number;
+  eventsThisMonth: number;
+  approvalRate: number;
+}
+
+interface PendingApproval {
+  id: string;
+  studentName: string;
+  activity: string;
+  type: string;
+  date: string;
+  credits: number;
+  urgent: boolean;
+  status: string;
+  aiDecision?: string;
+}
+
+interface RecentActivity {
+  action: string;
+  time: string;
+  status: string;
+  type?: string;
+}
+
+interface DepartmentStats {
+  totalStudents: number;
+  activeStudents: number;
+  avgCredits: number;
+  approvalRate: number;
+}
+
 const FacultyDashboard = () => {
-  const stats = [
-    { title: "Pending Approvals", value: "12", icon: Clock, color: "text-warning" },
-    { title: "Students Supervised", value: "89", icon: Users, color: "text-primary" },
-    { title: "Events This Month", value: "6", icon: Calendar, color: "text-secondary" },
-    { title: "Approval Rate", value: "94%", icon: CheckCircle, color: "text-success" },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats>({
+    pendingApprovals: 0,
+    totalStudents: 0,
+    eventsThisMonth: 0,
+    approvalRate: 0
+  });
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [departmentStats, setDepartmentStats] = useState<DepartmentStats>({
+    totalStudents: 0,
+    activeStudents: 0,
+    avgCredits: 0,
+    approvalRate: 0
+  });
 
-  const pendingApprovals = [
-    {
-      studentName: "Priya Sharma",
-      activity: "Hackathon Winner - TechFest 2024",
-      type: "Competition",
-      date: "2024-03-15",
-      credits: 15,
-      urgent: true
-    },
-    {
-      studentName: "Rahul Kumar",
-      activity: "AWS Cloud Certification",
-      type: "Certification",
-      date: "2024-03-10",
-      credits: 10,
-      urgent: false
-    },
-    {
-      studentName: "Anita Patel",
-      activity: "Research Paper Publication",
-      type: "Research",
-      date: "2024-03-08",
-      credits: 20,
-      urgent: true
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    
+    try {
+      // Fetch dashboard stats
+      const statsRes = await fetch("http://localhost:5000/api/faculty/dashboard/stats", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setStats(statsData.data.stats);
+        setRecentActivities(statsData.data.recentActivities);
+        setDepartmentStats(statsData.data.departmentStats);
+      }
+
+      // Fetch pending approvals
+      const approvalsRes = await fetch("http://localhost:5000/api/faculty/dashboard/pending-approvals", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (approvalsRes.ok) {
+        const approvalsData = await approvalsRes.json();
+        setPendingApprovals(approvalsData.data);
+      }
+
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const recentActivities = [
-    { action: "Approved internship for Alex Johnson", time: "2 hours ago" },
-    { action: "Created new workshop: AI Ethics", time: "1 day ago" },
-    { action: "Rejected duplicate certification for Maria", time: "2 days ago" },
-    { action: "Approved research project for David", time: "3 days ago" }
-  ];
-
-  const departmentStats = {
-    totalStudents: 234,
-    activeStudents: 198,
-    avgCredits: 45.6,
-    approvalRate: 94
   };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const handleQuickApprove = async (activityId: string) => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`http://localhost:5000/api/faculty/activities/${activityId}/approve`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ facultyName: "Faculty" }),
+      });
+      
+      if (res.ok) {
+        // Refresh dashboard data after approval
+        fetchDashboardData();
+      }
+    } catch (error) {
+      console.error("Error approving activity:", error);
+    }
+  };
+
+  const dashboardStats = [
+    { title: "Pending Approvals", value: stats.pendingApprovals.toString(), icon: Clock, color: "text-warning" },
+    { title: "Students Supervised", value: stats.totalStudents.toString(), icon: Users, color: "text-primary" },
+    { title: "Events This Month", value: stats.eventsThisMonth.toString(), icon: Calendar, color: "text-secondary" },
+    { title: "Approval Rate", value: `${stats.approvalRate}%`, icon: CheckCircle, color: "text-success" },
+  ];
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading dashboard...</span>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -91,7 +171,7 @@ const FacultyDashboard = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat) => (
+          {dashboardStats.map((stat) => (
             <Card key={stat.title} className="bg-gradient-card border-0 shadow-md">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -143,8 +223,16 @@ const FacultyDashboard = () => {
                         </div>
                       </div>
                       <div className="flex space-x-2 ml-4">
-                        <Button size="sm" variant="outline">View</Button>
-                        <Button size="sm" className="bg-success text-success-foreground">Approve</Button>
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to="/faculty/approvals">View</Link>
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          className="bg-success text-success-foreground"
+                          onClick={() => handleQuickApprove(approval.id)}
+                        >
+                          Approve
+                        </Button>
                       </div>
                     </div>
                   ))}

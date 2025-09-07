@@ -18,7 +18,7 @@ const StudentActivities = () => {
   const fetchActivities = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/activities", {
+      const res = await fetch("http://localhost:5000/api/activity", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -84,7 +84,7 @@ const StudentActivities = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/activities/upload-certificate", {
+      const res = await fetch("http://localhost:5000/api/activity/upload-certificate", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -223,7 +223,7 @@ const StudentActivities = () => {
                     <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
-                        <span>{activity.date}</span>
+                        <span>{new Date(activity.date).toLocaleDateString()}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Trophy className="h-4 w-4" />
@@ -253,19 +253,19 @@ const StudentActivities = () => {
           <CardContent>
             <div className="grid md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold">24</div>
+                <div className="text-2xl font-bold">{activities.length}</div>
                 <div className="text-white/80">Total Activities</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold">18</div>
+                <div className="text-2xl font-bold">{activities.filter(a => a.status === 'approved').length}</div>
                 <div className="text-white/80">Approved</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold">4</div>
+                <div className="text-2xl font-bold">{activities.filter(a => a.status === 'pending').length}</div>
                 <div className="text-white/80">Pending</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold">156</div>
+                <div className="text-2xl font-bold">{activities.filter(a => a.status === 'approved').reduce((sum, a) => sum + (parseInt(a.credits) || 0), 0)}</div>
                 <div className="text-white/80">Total Credits</div>
               </div>
             </div>
