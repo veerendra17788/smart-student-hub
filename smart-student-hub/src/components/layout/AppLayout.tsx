@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,8 +35,15 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate(); 
-  const { user, logout } = useAuth();
+  const { user, logout, refreshProfile } = useAuth();
   const location = useLocation();
+
+  // Refresh profile data on component mount to get latest profile photo
+  useEffect(() => {
+    if (user) {
+      refreshProfile();
+    }
+  }, [user?.id]); // Only refresh when user ID changes
 
   const getNavItems = () => {
     if (user?.role === "student") {

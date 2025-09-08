@@ -82,14 +82,15 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
-  department?: string;
-  rollNumber?: string;
+  department: string;
+  rollNumber: string;
 }
 
   interface AuthContextType {
     user: User | null;
     login: (email: string, password: string) => Promise<void>;
     logout: (navigate?: any) => void;
+    refreshProfile: () => Promise<void>;
     isAuthenticated: boolean;
     token: string | null;
 }
@@ -144,6 +145,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Refresh profile function
+  const refreshProfile = async () => {
+    try {
+      if (!token) return;
+      
+      const res = await fetch('http://localhost:5000/api/auth/profile', {
+        method: 'GET',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+    } catch (err) {
+      console.error('Profile refresh error:', err);
+    }
+  };
+
   // Logout function
   const logout = (navigate?: any) => {
     setUser(null);
@@ -158,6 +183,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     token,
     login,
     logout,
+    refreshProfile,
     isAuthenticated: !!user,
   };
 

@@ -132,6 +132,15 @@ const studentSchema = new mongoose.Schema({
       "Please enter a valid email address"
     ]
   },
+  passwordHash: {
+    type: String,
+    required: [true, "Password is required"]
+  },
+  role: {
+    type: String,
+    enum: ["student", "faculty", "admin"],
+    default: "student"
+  },
   phone: {
     type: String,
     required: [true, "Phone number is required"],

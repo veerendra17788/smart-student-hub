@@ -1,8 +1,11 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 const Student = require("../models/Student");
 const dotenv = require("dotenv");
+const path = require("path");
 
-dotenv.config();
+// Load .env file from the parent directory
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 // Sample data arrays
 const departments = [
@@ -82,7 +85,8 @@ const generateRollNumber = (year, department, index) => {
     'Biotechnology': 'BT'
   };
   
-  const yearCode = `2${4 - year}`; // 2024 for 1st year, 2023 for 2nd year, etc.
+  const currentYear = new Date().getFullYear();
+  const yearCode = currentYear - (4 - year); // Dynamic year calculation
   return `${yearCode}${deptCode[department]}${String(index).padStart(3, '0')}`;
 };
 
@@ -92,6 +96,13 @@ const generateEmail = (firstName, lastName, rollNumber) => {
 
 const generatePhone = () => {
   return `${getRandomNumber(7, 9)}${getRandomNumber(100000000, 999999999)}`;
+};
+
+const generatePassword = async (rollNumber) => {
+  // Generate a default password based on roll number for consistency
+  const defaultPassword = `student${rollNumber.slice(-3)}`; // e.g., "student001"
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(defaultPassword, salt);
 };
 
 const generateAddress = () => {
@@ -204,10 +215,10 @@ const generateEmergencyContact = () => {
   };
 };
 
-// Main generation function
-const generateStudentData = (count = 700) => {
+// Main generation function with enhanced data quality and password support
+const generateStudentData = async (count = 50) => {
   const students = [];
-  let rollCounter = 1;
+  let rollCounter = Math.floor(Math.random() * 100) + 1; // Start from random number to avoid conflicts
   
   for (let i = 0; i < count; i++) {
     const firstName = getRandomElement(firstNames);
@@ -217,10 +228,15 @@ const generateStudentData = (count = 700) => {
     const section = getRandomElement(sections);
     const rollNumber = generateRollNumber(year, department, rollCounter++);
     
+    // Generate password hash for the student
+    const passwordHash = await generatePassword(rollNumber);
+    
     const student = {
       rollNumber,
       name: `${firstName} ${lastName}`,
       email: generateEmail(firstName, lastName, rollNumber),
+      passwordHash,
+      role: "student",
       phone: generatePhone(),
       gender: getRandomElement(genders),
       age: getRandomNumber(18, 24),
@@ -229,13 +245,17 @@ const generateStudentData = (count = 700) => {
       section,
       address: generateAddress(),
       cgpa: getRandomFloat(6.0, 9.5),
+      currentSemester: (year - 1) * 2 + getRandomNumber(1, 2),
+      overallAttendancePercentage: getRandomNumber(70, 95),
       semesterGrades: generateSemesterGrades(year),
       attendance: generateAttendance(),
       activities: generateActivities(),
       bloodGroup: getRandomElement(bloodGroups),
       emergencyContact: generateEmergencyContact(),
       isActive: true,
-      profilePicture: `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}${lastName}`
+      profilePicture: `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}${lastName}`,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     
     students.push(student);
@@ -245,53 +265,97 @@ const generateStudentData = (count = 700) => {
 };
 
 // Database connection and data insertion
-const insertStudentData = async () => {
+const insertStudentData = async (options = {}) => {
+  const { count = 50, clearExisting = false, preserveExisting = true } = options;
+  
   try {
     console.log("🔄 Connecting to MongoDB...");
+    
+    if (!process.env.MONGO_URI) {
+      throw new Error("MONGO_URI environment variable is not set");
+    }
+    
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
     console.log("✅ MongoDB Connected");
 
-    // Clear existing student data (optional - comment out if you want to keep existing data)
-    console.log("🗑️ Clearing existing student data...");
-    await Student.deleteMany({});
-    console.log("✅ Existing data cleared");
+    // Check existing data
+    const existingCount = await Student.countDocuments();
+    console.log(`📊 Found ${existingCount} existing student records`);
 
-    // Generate student data
-    console.log("🔄 Generating student data...");
-    const studentData = generateStudentData(700);
-    console.log(`✅ Generated ${studentData.length} student records`);
-
-    // Insert data in batches to avoid memory issues
-    const batchSize = 100;
-    let insertedCount = 0;
-
-    for (let i = 0; i < studentData.length; i += batchSize) {
-      const batch = studentData.slice(i, i + batchSize);
-      await Student.insertMany(batch);
-      insertedCount += batch.length;
-      console.log(`✅ Inserted ${insertedCount}/${studentData.length} students`);
+    // Preserve existing data by default (especially rollNumber "1234")
+    if (clearExisting && !preserveExisting) {
+      console.log("🗑️ Clearing existing student data...");
+      await Student.deleteMany({});
+      console.log("✅ Existing data cleared");
+    } else {
+      console.log("✅ Preserving existing student data");
     }
 
-    console.log("🎉 All student data inserted successfully!");
+    // Generate student data
+    console.log(`🔄 Generating ${count} new student records...`);
+    const studentData = await generateStudentData(count);
+    console.log(`✅ Generated ${studentData.length} student records`);
+    
+    // Filter out any duplicates with existing roll numbers
+    const existingRollNumbers = await Student.distinct('rollNumber');
+    const newStudentData = studentData.filter(student => 
+      !existingRollNumbers.includes(student.rollNumber)
+    );
+    
+    if (newStudentData.length !== studentData.length) {
+      console.log(`⚠️  Filtered out ${studentData.length - newStudentData.length} duplicate roll numbers`);
+    }
+    
+    if (newStudentData.length === 0) {
+      console.log("ℹ️  No new students to add (all roll numbers already exist)");
+      return;
+    }
 
-    // Generate some statistics
+    // Insert data in batches to avoid memory issues
+    const batchSize = 50;
+    let insertedCount = 0;
+
+    for (let i = 0; i < newStudentData.length; i += batchSize) {
+      const batch = newStudentData.slice(i, i + batchSize);
+      try {
+        await Student.insertMany(batch, { ordered: false });
+        insertedCount += batch.length;
+        console.log(`✅ Inserted batch: ${insertedCount}/${newStudentData.length} students`);
+      } catch (batchError) {
+        console.warn(`⚠️  Batch insertion warning:`, batchError.message);
+        // Continue with next batch even if some documents fail
+      }
+    }
+
+    console.log(`🎉 Successfully inserted ${insertedCount} new student records!`);
+    
+    // Final count verification
+    const finalCount = await Student.countDocuments();
+    console.log(`📊 Total students in database: ${finalCount}`);
+
+    // Generate comprehensive statistics
     const stats = await Student.aggregate([
       {
         $group: {
           _id: "$department",
           count: { $sum: 1 },
           avgCGPA: { $avg: "$cgpa" },
-          avgAttendance: { $avg: "$overallAttendancePercentage" }
+          avgAge: { $avg: "$age" }
         }
       },
       { $sort: { count: -1 } }
     ]);
 
     console.log("\n📊 Department-wise Statistics:");
-    console.table(stats);
+    console.table(stats.map(stat => ({
+      Department: stat._id,
+      Students: stat.count,
+      'Avg CGPA': stat.avgCGPA ? stat.avgCGPA.toFixed(2) : 'N/A',
+      'Avg Age': stat.avgAge ? stat.avgAge.toFixed(1) : 'N/A'
+    })));
 
     // Year-wise distribution
     const yearStats = await Student.aggregate([
@@ -315,9 +379,45 @@ const insertStudentData = async () => {
   }
 };
 
-// Run the script
+// Enhanced script execution with command line arguments
 if (require.main === module) {
-  insertStudentData();
+  const args = process.argv.slice(2);
+  const options = {};
+  
+  // Parse command line arguments
+  args.forEach(arg => {
+    if (arg.startsWith('--count=')) {
+      options.count = parseInt(arg.split('=')[1]) || 50;
+    } else if (arg === '--clear') {
+      options.clearExisting = true;
+      options.preserveExisting = false;
+    } else if (arg === '--help') {
+      console.log(`
+📚 Student Data Generator Usage:
+`);
+      console.log(`node generateStudentData.js [options]
+`);
+      console.log(`Options:`);
+      console.log(`  --count=N     Generate N student records (default: 50)`);
+      console.log(`  --clear       Clear existing data before inserting`);
+      console.log(`  --help        Show this help message\n`);
+      console.log(`Examples:`);
+      console.log(`  node generateStudentData.js --count=100`);
+      console.log(`  node generateStudentData.js --count=200 --clear\n`);
+      process.exit(0);
+    }
+  });
+  
+  console.log(`🚀 Starting student data generation with options:`, options);
+  insertStudentData(options)
+    .then(() => {
+      console.log(`\n✅ Script completed successfully!`);
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error(`\n❌ Script failed:`, error.message);
+      process.exit(1);
+    });
 }
 
 module.exports = { generateStudentData, insertStudentData };

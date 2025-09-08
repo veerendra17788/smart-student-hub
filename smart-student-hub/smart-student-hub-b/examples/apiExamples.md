@@ -8,6 +8,27 @@
 GET /api/student/dashboard/2024CSE001
 ```
 
+
+<!-- 
+_id
+68b9a58590e6d20dadbc3d44
+name
+"v"
+email
+"vk@gmail.com"
+rollNumber
+"1234"
+department
+"cse"
+passwordHash
+"$2b$10$zaLmCnfQORPxcI.E9rOR/uZyALGXo3EoT1FzG8n48M2.kivXG.BIW"
+role
+"student"
+createdAt
+2025-09-04T14:43:17.019+00:00
+__v
+0 -->
+
 ### Example Response:
 ```json
 {
