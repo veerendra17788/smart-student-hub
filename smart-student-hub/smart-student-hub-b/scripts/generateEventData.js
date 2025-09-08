@@ -2,24 +2,24 @@ const mongoose = require("mongoose");
 const Event = require("../models/Event");
 require("dotenv").config();
 
-// Sample event data
+// Sample event data with updated dates
 const sampleEvents = [
   {
     title: "AI & Machine Learning Workshop",
     type: "Workshop",
-    date: new Date("2024-12-15T10:00:00Z"),
+    date: new Date("2025-01-15T10:00:00Z"),
     time: "10:00 AM - 4:00 PM",
     location: "Computer Science Lab",
     capacity: 50,
     credits: 2,
-    department: "Computer Science",
+    department: "Computer Science and Engineering",
     description: "Hands-on workshop covering fundamentals of AI and ML with practical projects.",
     status: "active"
   },
   {
     title: "Web Development Bootcamp",
     type: "Workshop",
-    date: new Date("2024-12-20T09:00:00Z"),
+    date: new Date("2025-01-20T09:00:00Z"),
     time: "9:00 AM - 5:00 PM",
     location: "IT Lab 1",
     capacity: 40,
@@ -31,7 +31,7 @@ const sampleEvents = [
   {
     title: "Cybersecurity Seminar",
     type: "Seminar",
-    date: new Date("2024-12-18T14:00:00Z"),
+    date: new Date("2025-01-18T14:00:00Z"),
     time: "2:00 PM - 4:00 PM",
     location: "Auditorium",
     capacity: 200,
@@ -67,12 +67,12 @@ const sampleEvents = [
   {
     title: "Mobile App Development Workshop",
     type: "Workshop",
-    date: new Date("2024-12-22T10:00:00Z"),
+    date: new Date("2025-01-22T10:00:00Z"),
     time: "10:00 AM - 3:00 PM",
     location: "Mobile Lab",
     capacity: 30,
     credits: 2,
-    department: "Computer Science",
+    department: "Computer Science and Engineering",
     description: "Learn to build mobile apps using React Native and Flutter.",
     status: "active"
   },

@@ -2,7 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Activity = require("../models/Activity");
-const authMiddleware = require("../middleware/auth");
+const { authMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
 

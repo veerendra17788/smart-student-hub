@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, MapPin, Users, Clock, Star, Search, Filter, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, Star, Search, Filter, Loader2, Award, TrendingUp, CheckCircle2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -22,6 +23,9 @@ const StudentEvents = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isRegistrationDialogOpen, setIsRegistrationDialogOpen] = useState(false);
+  const [filterType, setFilterType] = useState("all");
+  const [filterDepartment, setFilterDepartment] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
 
   // Registration form data
   const [registrationData, setRegistrationData] = useState({
@@ -46,7 +50,7 @@ const StudentEvents = () => {
       setUpcomingEvents(upcoming);
       setPastEvents(past);
       
-      // Filter registered events for current user
+      // Filter registered events for current user (both upcoming and past)
       const userRegistrations = events.filter(event => 
         event.registrations?.some(reg => reg.studentId === user?.id)
       );
@@ -126,12 +130,44 @@ const StudentEvents = () => {
     setIsRegistrationDialogOpen(true);
   };
 
-  // Filter events based on search term
-  const filteredUpcomingEvents = upcomingEvents.filter(event =>
-    event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Advanced filtering and sorting function
+  const filterAndSortEvents = (events) => {
+    let filtered = events.filter(event => {
+      const matchesSearch = searchTerm === "" || 
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.type.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesType = filterType === "all" || event.type === filterType;
+      const matchesDepartment = filterDepartment === "all" || 
+        event.department === filterDepartment || 
+        event.department === "all";
+      
+      return matchesSearch && matchesType && matchesDepartment;
+    });
+
+    // Sort events
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "date":
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        case "title":
+          return a.title.localeCompare(b.title);
+        case "credits":
+          return (b.credits || 0) - (a.credits || 0);
+        case "capacity":
+          return (b.capacity - (b.registrations?.length || 0)) - (a.capacity - (a.registrations?.length || 0));
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  };
+
+  const filteredUpcomingEvents = filterAndSortEvents(upcomingEvents);
+  const filteredRegisteredEvents = filterAndSortEvents(registeredEvents);
+  const filteredPastEvents = filterAndSortEvents(pastEvents);
 
   useEffect(() => {
     fetchEvents();
@@ -150,24 +186,67 @@ const StudentEvents = () => {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Events</h1>
-            <p className="text-muted-foreground">Discover and participate in campus events</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              Campus Events
+            </h1>
+            <p className="text-muted-foreground">Discover, register, and participate in exciting campus events</p>
           </div>
-          <div className="flex space-x-2">
+          
+          {/* Search and Filter Controls */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input 
                 placeholder="Search events..." 
-                className="pl-10 w-64"
+                className="pl-10 w-full sm:w-64"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline">
-              <Filter className="h-4 w-4" />
-            </Button>
+            
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Event Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="Workshop">Workshop</SelectItem>
+                <SelectItem value="Seminar">Seminar</SelectItem>
+                <SelectItem value="Competition">Competition</SelectItem>
+                <SelectItem value="Hackathon">Hackathon</SelectItem>
+                <SelectItem value="Conference">Conference</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={filterDepartment} onValueChange={setFilterDepartment}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem value="Computer Science and Engineering">CSE</SelectItem>
+                <SelectItem value="Information Technology">IT</SelectItem>
+                <SelectItem value="Electronics and Communication Engineering">ECE</SelectItem>
+                <SelectItem value="Mechanical Engineering">ME</SelectItem>
+                <SelectItem value="Civil Engineering">CE</SelectItem>
+                <SelectItem value="Electrical Engineering">EEE</SelectItem>
+                <SelectItem value="Biotechnology">BT</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-full sm:w-32">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Date</SelectItem>
+                <SelectItem value="title">Title</SelectItem>
+                <SelectItem value="credits">Credits</SelectItem>
+                <SelectItem value="capacity">Availability</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -262,49 +341,75 @@ const StudentEvents = () => {
 
           {/* Registered Events */}
           <TabsContent value="registered" className="space-y-4">
-            {registeredEvents.length === 0 ? (
-              <Card className="bg-gradient-card border-0 shadow-lg">
+            {filteredRegisteredEvents.length === 0 ? (
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-900 border-0 shadow-lg">
                 <CardContent className="p-8 text-center">
-                  <h3 className="text-lg font-semibold mb-2">No registrations yet</h3>
+                  <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                  <h3 className="text-lg font-semibold mb-2">No registrations found</h3>
                   <p className="text-muted-foreground">
-                    You haven't registered for any events. Check out the upcoming events to get started!
+                    {searchTerm || filterType !== "all" || filterDepartment !== "all" 
+                      ? "No registered events match your current filters." 
+                      : "You haven't registered for any events yet. Check out the upcoming events to get started!"
+                    }
                   </p>
                 </CardContent>
               </Card>
             ) : (
-              registeredEvents.map((event) => {
+              filteredRegisteredEvents.map((event) => {
                 const userRegistration = event.registrations?.find(reg => reg.studentId === user?.id);
+                const isUpcoming = new Date(event.date) >= new Date();
                 return (
-                  <Card key={event._id} className="bg-gradient-card border-0 shadow-lg">
+                  <Card key={event._id} className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-l-4 border-l-green-500 shadow-lg hover:shadow-xl transition-all">
                     <CardContent className="p-6">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="text-lg font-semibold">{event.title}</h3>
-                          <div className="flex items-center space-x-4 mt-2">
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-semibold">{event.title}</h3>
+                            <Badge variant="outline">{event.type}</Badge>
+                            {isUpcoming ? (
+                              <Badge className="bg-blue-500 text-white">Upcoming</Badge>
+                            ) : (
+                              <Badge className="bg-gray-500 text-white">Completed</Badge>
+                            )}
+                          </div>
+                          <p className="text-muted-foreground mb-3">{event.description}</p>
+                          <div className="grid md:grid-cols-2 gap-3 text-sm">
                             <div className="flex items-center space-x-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground">
-                                {new Date(event.date).toLocaleDateString()}
-                              </span>
+                              <Calendar className="h-4 w-4 text-green-600" />
+                              <span>{new Date(event.date).toLocaleDateString()}</span>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground">{event.time || "TBD"}</span>
+                              <Clock className="h-4 w-4 text-green-600" />
+                              <span>{event.time || "TBD"}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <MapPin className="h-4 w-4 text-green-600" />
+                              <span>{event.location || "TBD"}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Award className="h-4 w-4 text-green-600" />
+                              <span>{event.credits} credits</span>
                             </div>
                           </div>
                           {userRegistration && (
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-xs text-green-600 mt-2 font-medium">
                               Registered on {new Date(userRegistration.registeredAt).toLocaleDateString()}
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center space-x-4">
-                          <Badge className="bg-success text-success-foreground">
+                        <div className="flex items-center space-x-3">
+                          <Badge className="bg-green-500 text-white">
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
                             Registered
                           </Badge>
                           <Button variant="outline" size="sm">
                             View Details
                           </Button>
+                          {!isUpcoming && (
+                            <Button variant="outline" size="sm" className="text-blue-600 border-blue-200">
+                              Add Feedback
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -316,48 +421,73 @@ const StudentEvents = () => {
 
           {/* Past Events */}
           <TabsContent value="past" className="space-y-4">
-            {pastEvents.length === 0 ? (
-              <Card className="bg-gradient-card border-0 shadow-lg">
+            {filteredPastEvents.length === 0 ? (
+              <Card className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-950 dark:to-pink-900 border-0 shadow-lg">
                 <CardContent className="p-8 text-center">
-                  <h3 className="text-lg font-semibold mb-2">No past events</h3>
+                  <TrendingUp className="h-12 w-12 mx-auto mb-4 text-purple-500" />
+                  <h3 className="text-lg font-semibold mb-2">No past events found</h3>
                   <p className="text-muted-foreground">
-                    Your attended events will appear here after completion.
+                    {searchTerm || filterType !== "all" || filterDepartment !== "all" 
+                      ? "No past events match your current filters." 
+                      : "Your completed events will appear here after participation."
+                    }
                   </p>
                 </CardContent>
               </Card>
             ) : (
-              pastEvents.map((event) => {
+              filteredPastEvents.map((event) => {
                 const userRegistration = event.registrations?.find(reg => reg.studentId === user?.id);
+                const wasAttended = !!userRegistration;
                 return (
-                  <Card key={event._id} className="bg-gradient-card border-0 shadow-lg">
+                  <Card key={event._id} className={`border-0 shadow-lg hover:shadow-xl transition-all ${
+                    wasAttended 
+                      ? "bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950 border-l-4 border-l-purple-500" 
+                      : "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-950 dark:to-slate-950 border-l-4 border-l-gray-400"
+                  }`}>
                     <CardContent className="p-6">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="text-lg font-semibold">{event.title}</h3>
-                          <div className="flex items-center space-x-4 mt-2 text-sm">
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-muted-foreground">
-                                {new Date(event.date).toLocaleDateString()}
-                              </span>
-                            </div>
-                            {userRegistration && (
-                              <Badge className="bg-success text-success-foreground">
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-semibold">{event.title}</h3>
+                            <Badge variant="outline">{event.type}</Badge>
+                            <Badge className="bg-gray-500 text-white">Completed</Badge>
+                            {wasAttended && (
+                              <Badge className="bg-purple-500 text-white">
+                                <CheckCircle2 className="w-3 h-3 mr-1" />
                                 Attended
                               </Badge>
                             )}
-                            <Badge className="bg-primary-light text-primary">
-                              {event.credits} credits
-                            </Badge>
                           </div>
+                          <p className="text-muted-foreground mb-3">{event.description}</p>
+                          <div className="grid md:grid-cols-3 gap-3 text-sm">
+                            <div className="flex items-center space-x-2">
+                              <Calendar className={`h-4 w-4 ${wasAttended ? 'text-purple-600' : 'text-gray-500'}`} />
+                              <span>{new Date(event.date).toLocaleDateString()}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <MapPin className={`h-4 w-4 ${wasAttended ? 'text-purple-600' : 'text-gray-500'}`} />
+                              <span>{event.location || "TBD"}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Award className={`h-4 w-4 ${wasAttended ? 'text-purple-600' : 'text-gray-500'}`} />
+                              <span>{event.credits} credits {wasAttended ? '(Earned)' : ''}</span>
+                            </div>
+                          </div>
+                          {userRegistration && (
+                            <p className="text-xs text-purple-600 mt-2 font-medium">
+                              Participated on {new Date(event.date).toLocaleDateString()}
+                            </p>
+                          )}
                         </div>
-                        <div className="flex space-x-2">
+                        <div className="flex items-center space-x-3">
                           <Button variant="outline" size="sm">
                             View Details
                           </Button>
-                          <Button variant="outline" size="sm">
-                            Feedback
-                          </Button>
+                          {wasAttended && (
+                            <Button variant="outline" size="sm" className="text-purple-600 border-purple-200">
+                              Add Feedback
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -369,35 +499,104 @@ const StudentEvents = () => {
         </Tabs>
 
         {/* Event Statistics */}
-        <Card className="bg-gradient-primary text-white border-0 shadow-lg">
+        <Card className="bg-gradient-to-r from-primary via-blue-600 to-purple-600 text-white border-0 shadow-xl">
           <CardHeader>
-            <CardTitle>Your Event Statistics</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Your Event Journey
+            </CardTitle>
+            <CardDescription className="text-white/80">
+              Track your participation and achievements
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold">{pastEvents.length}</div>
-                <div className="text-white/80">Events Attended</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">{registeredEvents.length}</div>
-                <div className="text-white/80">Upcoming</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">
-                  {pastEvents.reduce((sum, event) => sum + (event.credits || 0), 0)}
+              <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
+                <div className="text-3xl font-bold mb-1">
+                  {pastEvents.filter(event => event.registrations?.some(reg => reg.studentId === user?.id)).length}
                 </div>
-                <div className="text-white/80">Credits Earned</div>
+                <div className="text-white/90 text-sm">Events Attended</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold">
-                  {pastEvents.length > 0 ? Math.round((pastEvents.length / (pastEvents.length + registeredEvents.length)) * 100) : 0}%
+              <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
+                <div className="text-3xl font-bold mb-1">
+                  {registeredEvents.filter(event => new Date(event.date) >= new Date()).length}
                 </div>
-                <div className="text-white/80">Attendance Rate</div>
+                <div className="text-white/90 text-sm">Upcoming Events</div>
+              </div>
+              <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
+                <div className="text-3xl font-bold mb-1">
+                  {pastEvents
+                    .filter(event => event.registrations?.some(reg => reg.studentId === user?.id))
+                    .reduce((sum, event) => sum + (event.credits || 0), 0)}
+                </div>
+                <div className="text-white/90 text-sm">Credits Earned</div>
+              </div>
+              <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
+                <div className="text-3xl font-bold mb-1">
+                  {registeredEvents.length > 0 
+                    ? Math.round((pastEvents.filter(event => event.registrations?.some(reg => reg.studentId === user?.id)).length / registeredEvents.length) * 100)
+                    : 0}%
+                </div>
+                <div className="text-white/90 text-sm">Completion Rate</div>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Footer */}
+        <footer className="mt-12 py-8 border-t bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="grid md:grid-cols-4 gap-8">
+              <div>
+                <h3 className="font-semibold text-lg mb-3 text-primary">Quick Links</h3>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li><a href="#" className="hover:text-primary transition-colors">Event Guidelines</a></li>
+                  <li><a href="#" className="hover:text-primary transition-colors">Registration Help</a></li>
+                  <li><a href="#" className="hover:text-primary transition-colors">Event Calendar</a></li>
+                  <li><a href="#" className="hover:text-primary transition-colors">Contact Support</a></li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-3 text-primary">Event Categories</h3>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li><a href="#" className="hover:text-primary transition-colors">Technical Workshops</a></li>
+                  <li><a href="#" className="hover:text-primary transition-colors">Coding Competitions</a></li>
+                  <li><a href="#" className="hover:text-primary transition-colors">Industry Seminars</a></li>
+                  <li><a href="#" className="hover:text-primary transition-colors">Hackathons</a></li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-3 text-primary">Resources</h3>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li><a href="#" className="hover:text-primary transition-colors">Event Archive</a></li>
+                  <li><a href="#" className="hover:text-primary transition-colors">Certificates</a></li>
+                  <li><a href="#" className="hover:text-primary transition-colors">Feedback Forms</a></li>
+                  <li><a href="#" className="hover:text-primary transition-colors">Event Photos</a></li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-3 text-primary">Stay Connected</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Get notified about upcoming events and opportunities
+                </p>
+                <div className="flex space-x-2">
+                  <Button size="sm" variant="outline" className="text-xs">
+                    Email Alerts
+                  </Button>
+                  <Button size="sm" variant="outline" className="text-xs">
+                    SMS Updates
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground">
+              <p>&copy; 2024 Smart Student Hub. All rights reserved. | 
+                <a href="#" className="hover:text-primary ml-1">Privacy Policy</a> | 
+                <a href="#" className="hover:text-primary ml-1">Terms of Service</a>
+              </p>
+            </div>
+          </div>
+        </footer>
 
         {/* Registration Dialog */}
         <Dialog open={isRegistrationDialogOpen} onOpenChange={setIsRegistrationDialogOpen}>
