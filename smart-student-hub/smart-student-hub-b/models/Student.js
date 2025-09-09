@@ -275,6 +275,12 @@ const studentSchema = new mongoose.Schema({
   // Activities
   activities: [activitySchema],
   
+  // Skills
+  skills: [{
+    type: String,
+    trim: true
+  }],
+  
   // Additional Information
   bloodGroup: {
     type: String,

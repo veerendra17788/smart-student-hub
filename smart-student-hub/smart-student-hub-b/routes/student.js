@@ -1,6 +1,6 @@
 const express = require("express");
 const Student = require("../models/Student");
-const auth = require("../middleware/auth");
+const { authMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -342,6 +342,7 @@ router.put("/:rollNo/profile", async (req, res) => {
   }
 });
 
+
 // GET /api/student/:rollNo/attendance/calendar - Get daily attendance data for calendar view
 router.get("/:rollNo/attendance/calendar", async (req, res) => {
   try {
@@ -409,12 +410,14 @@ router.post("/:rollNo/attendance/daily", async (req, res) => {
       isActive: true 
     });
     
+
     if (!student) {
       return res.status(404).json({
         success: false,
         message: "Student not found"
       });
     }
+
 
     // Add daily attendance record
     const attendanceRecord = {
@@ -452,6 +455,7 @@ router.post("/:rollNo/attendance/daily", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to add daily attendance",
+
       error: error.message
     });
   }

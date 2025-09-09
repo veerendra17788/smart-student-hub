@@ -1,7 +1,7 @@
 const express = require("express");
 const Activity = require("../models/Activity");
 const Student = require("../models/Student");
-const authMiddleware = require("../middleware/auth");
+const { authMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
 

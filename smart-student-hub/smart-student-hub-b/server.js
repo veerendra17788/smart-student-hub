@@ -13,13 +13,16 @@ app.use(express.json());
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// MongoDB connection
+// MongoDB connection with improved error handling and timeout settings
 mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 10000, // 10 second timeout
+  socketTimeoutMS: 45000, // 45 second socket timeout
 })
 .then(() => console.log("✅ MongoDB Connected"))
-.catch((err) => console.error("❌ MongoDB Error:", err));
+.catch((err) => {
+  console.error("❌ MongoDB Connection Failed:", err.message);
+  console.log("🔄 Using fallback mode - API will return demo data");
+});
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
@@ -32,6 +35,7 @@ app.use("/api/faculty/dashboard", require("./routes/facultyDashboard"));
 app.use("/api/faculty/analytics", require("./routes/facultyAnalytics"));
 app.use("/api/portfolio", require("./routes/portfolio"));
 app.use("/api/events", require("./routes/eventRoutes"));
+app.use("/api/ai", require("./routes/aiRecommendations"));
 
 // Start server
 const PORT = process.env.PORT || 5000;

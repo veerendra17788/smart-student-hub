@@ -1,6 +1,6 @@
 const express = require("express");
 const Student = require("../models/Student");
-const auth = require("../middleware/auth");
+const { authMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -17,7 +17,7 @@ const checkFacultyRole = (req, res, next) => {
 };
 
 // GET /api/faculty/students - Get all students (with pagination and filters)
-router.get("/students", auth, checkFacultyRole, async (req, res) => {
+router.get("/students", authMiddleware, checkFacultyRole, async (req, res) => {
   try {
     const { 
       page = 1, 
@@ -84,7 +84,7 @@ router.get("/students", auth, checkFacultyRole, async (req, res) => {
 });
 
 // GET /api/faculty/student/:rollNo - Get specific student details
-router.get("/student/:rollNo", auth, checkFacultyRole, async (req, res) => {
+router.get("/student/:rollNo", authMiddleware, checkFacultyRole, async (req, res) => {
   try {
     const { rollNo } = req.params;
     
@@ -115,7 +115,7 @@ router.get("/student/:rollNo", auth, checkFacultyRole, async (req, res) => {
 });
 
 // PUT /api/faculty/student/:rollNo/cgpa - Faculty update student CGPA
-router.put("/student/:rollNo/cgpa", auth, checkFacultyRole, async (req, res) => {
+router.put("/student/:rollNo/cgpa", authMiddleware, checkFacultyRole, async (req, res) => {
   try {
     const { rollNo } = req.params;
     const { cgpa, remarks } = req.body;
@@ -175,7 +175,7 @@ router.put("/student/:rollNo/cgpa", auth, checkFacultyRole, async (req, res) => 
 });
 
 // PUT /api/faculty/student/:rollNo/attendance - Faculty update student attendance
-router.put("/student/:rollNo/attendance", auth, checkFacultyRole, async (req, res) => {
+router.put("/student/:rollNo/attendance", authMiddleware, checkFacultyRole, async (req, res) => {
   try {
     const { rollNo } = req.params;
     const { subjectCode, subjectName, totalClasses, attendedClasses, remarks } = req.body;
@@ -265,7 +265,7 @@ router.put("/student/:rollNo/attendance", auth, checkFacultyRole, async (req, re
 });
 
 // POST /api/faculty/student/:rollNo/semester-grades - Add semester grades
-router.post("/student/:rollNo/semester-grades", auth, checkFacultyRole, async (req, res) => {
+router.post("/student/:rollNo/semester-grades", authMiddleware, checkFacultyRole, async (req, res) => {
   try {
     const { rollNo } = req.params;
     const { semester, subjects, sgpa } = req.body;
@@ -335,7 +335,7 @@ router.post("/student/:rollNo/semester-grades", auth, checkFacultyRole, async (r
 });
 
 // GET /api/faculty/analytics/attendance - Get attendance analytics
-router.get("/analytics/attendance", auth, checkFacultyRole, async (req, res) => {
+router.get("/analytics/attendance", authMiddleware, checkFacultyRole, async (req, res) => {
   try {
     const { department, year, threshold = 75 } = req.query;
 
@@ -377,7 +377,7 @@ router.get("/analytics/attendance", auth, checkFacultyRole, async (req, res) => 
 });
 
 // GET /api/faculty/analytics/performance - Get academic performance analytics
-router.get("/analytics/performance", auth, checkFacultyRole, async (req, res) => {
+router.get("/analytics/performance", authMiddleware, checkFacultyRole, async (req, res) => {
   try {
     const { department, year } = req.query;
 

@@ -1,6 +1,6 @@
 const express = require("express");
 const Activity = require("../models/Activity");
-const authMiddleware = require("../middleware/auth");
+const { authMiddleware } = require("../middleware/auth");
 const crypto = require("crypto");
 const { ethers } = require("ethers");
 const fs = require("fs");

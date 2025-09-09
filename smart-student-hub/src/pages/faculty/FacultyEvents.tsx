@@ -8,13 +8,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Plus, Users, MapPin, Clock, QrCode, BarChart3, Loader2, Edit, Settings, Download, Eye } from "lucide-react";
+import { Calendar, Plus, Users, MapPin, Clock, QrCode, BarChart3, Loader2, Edit, Trash2, Download, Eye, Filter, Search, CalendarDays, Timer, Building2, Award, TrendingUp, FileText, Share2, Settings2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 const FacultyEvents = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [pastEvents, setPastEvents] = useState([]);
+  const [filteredUpcomingEvents, setFilteredUpcomingEvents] = useState([]);
+  const [filteredPastEvents, setFilteredPastEvents] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [filterDepartment, setFilterDepartment] = useState('all');
   const [analytics, setAnalytics] = useState({
     totalEvents: 0,
     totalAttendees: 0,
@@ -26,12 +31,17 @@ const FacultyEvents = () => {
     title: '',
     type: '',
     date: '',
-    time: '',
+    startTime: '',
+    endTime: '',
     location: '',
     capacity: '',
     credits: '',
     department: '',
-    description: ''
+    description: '',
+    prerequisites: '',
+    instructor: '',
+    venue: '',
+    registrationDeadline: ''
   });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -44,8 +54,52 @@ const FacultyEvents = () => {
   const [selectedEventRegistrations, setSelectedEventRegistrations] = useState(null);
   const [registrations, setRegistrations] = useState([]);
   const [loadingRegistrations, setLoadingRegistrations] = useState(false);
+  const [selectedEvents, setSelectedEvents] = useState([]);
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
   const API_BASE_URL = 'http://localhost:5000/api';
+
+  // Export events data
+  const exportEventsData = (events, filename) => {
+    const csvContent = [
+      ['Title', 'Type', 'Date', 'Time', 'Location', 'Capacity', 'Registered', 'Credits', 'Department', 'Status'].join(','),
+      ...events.map(event => [
+        `"${event.title}"`,
+        event.type,
+        formatDate(event.date),
+        event.startTime || event.time || 'TBD',
+        `"${event.location || 'TBD'}"`,
+        event.capacity,
+        event.registered?.length || 0,
+        event.credits,
+        `"${event.department || 'All'}"`,
+        new Date(event.date) > new Date() ? 'Upcoming' : 'Past'
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Events data exported successfully!');
+  };
+
+  // Get event status
+  const getEventStatus = (event) => {
+    const eventDate = new Date(event.date);
+    const today = new Date();
+    const registrationRate = (event.registered?.length || 0) / event.capacity;
+    
+    if (eventDate < today) return { status: 'completed', color: 'bg-gray-500', text: 'Completed' };
+    if (registrationRate >= 0.9) return { status: 'full', color: 'bg-red-500', text: 'Nearly Full' };
+    if (registrationRate >= 0.5) return { status: 'filling', color: 'bg-yellow-500', text: 'Filling Up' };
+    return { status: 'open', color: 'bg-green-500', text: 'Open' };
+  };
 
   // Fetch upcoming events
   const fetchUpcomingEvents = async () => {
@@ -275,12 +329,17 @@ const FacultyEvents = () => {
           title: '',
           type: '',
           date: '',
-          time: '',
+          startTime: '',
+          endTime: '',
           location: '',
           capacity: '',
           credits: '',
           department: '',
-          description: ''
+          description: '',
+          prerequisites: '',
+          instructor: '',
+          venue: '',
+          registrationDeadline: ''
         });
         fetchUpcomingEvents();
         fetchAnalytics();
@@ -295,6 +354,29 @@ const FacultyEvents = () => {
       setIsCreating(false);
     }
   };
+
+  // Filter and search functionality
+  useEffect(() => {
+    let filtered = upcomingEvents.filter(event => {
+      const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           event.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = filterType === 'all' || event.type === filterType;
+      const matchesDepartment = filterDepartment === 'all' || event.department === filterDepartment;
+      return matchesSearch && matchesType && matchesDepartment;
+    });
+    setFilteredUpcomingEvents(filtered);
+  }, [upcomingEvents, searchTerm, filterType, filterDepartment]);
+
+  useEffect(() => {
+    let filtered = pastEvents.filter(event => {
+      const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           event.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = filterType === 'all' || event.type === filterType;
+      const matchesDepartment = filterDepartment === 'all' || event.department === filterDepartment;
+      return matchesSearch && matchesType && matchesDepartment;
+    });
+    setFilteredPastEvents(filtered);
+  }, [pastEvents, searchTerm, filterType, filterDepartment]);
 
   // Load data on component mount
   useEffect(() => {
@@ -392,9 +474,9 @@ const FacultyEvents = () => {
                     <Label htmlFor="eventTime">Time</Label>
                     <Input 
                       id="eventTime" 
-                      placeholder="10:00 AM - 4:00 PM" 
-                      value={createEventData.time}
-                      onChange={(e) => setCreateEventData({...createEventData, time: e.target.value})}
+                      type="time"
+                      value={createEventData.startTime}
+                      onChange={(e) => setCreateEventData({...createEventData, startTime: e.target.value})}
                     />
                   </div>
                   <div>
@@ -434,9 +516,13 @@ const FacultyEvents = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Departments</SelectItem>
-                        <SelectItem value="cse">Computer Science</SelectItem>
-                        <SelectItem value="ece">Electronics</SelectItem>
-                        <SelectItem value="mech">Mechanical</SelectItem>
+                        <SelectItem value="Computer Science and Engineering">Computer Science and Engineering</SelectItem>
+                        <SelectItem value="Information Technology">Information Technology</SelectItem>
+                        <SelectItem value="Electronics and Communication Engineering">Electronics and Communication Engineering</SelectItem>
+                        <SelectItem value="Mechanical Engineering">Mechanical Engineering</SelectItem>
+                        <SelectItem value="Civil Engineering">Civil Engineering</SelectItem>
+                        <SelectItem value="Electrical Engineering">Electrical Engineering</SelectItem>
+                        <SelectItem value="Biotechnology">Biotechnology</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -560,9 +646,13 @@ const FacultyEvents = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Departments</SelectItem>
-                          <SelectItem value="cse">Computer Science</SelectItem>
-                          <SelectItem value="ece">Electronics</SelectItem>
-                          <SelectItem value="mech">Mechanical</SelectItem>
+                          <SelectItem value="Computer Science and Engineering">Computer Science and Engineering</SelectItem>
+                          <SelectItem value="Information Technology">Information Technology</SelectItem>
+                          <SelectItem value="Electronics and Communication Engineering">Electronics and Communication Engineering</SelectItem>
+                          <SelectItem value="Mechanical Engineering">Mechanical Engineering</SelectItem>
+                          <SelectItem value="Civil Engineering">Civil Engineering</SelectItem>
+                          <SelectItem value="Electrical Engineering">Electrical Engineering</SelectItem>
+                          <SelectItem value="Biotechnology">Biotechnology</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -690,16 +780,81 @@ const FacultyEvents = () => {
           </Dialog>
         </div>
 
+        {/* Search and Filter Controls */}
+        <Card className="bg-gradient-card border-0 shadow-md">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Search events by title or description..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Event Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="Workshop">Workshop</SelectItem>
+                    <SelectItem value="Seminar">Seminar</SelectItem>
+                    <SelectItem value="Competition">Competition</SelectItem>
+                    <SelectItem value="Hackathon">Hackathon</SelectItem>
+                    <SelectItem value="Conference">Conference</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filterDepartment} onValueChange={setFilterDepartment}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    <SelectItem value="Computer Science and Engineering">CSE</SelectItem>
+                    <SelectItem value="Information Technology">IT</SelectItem>
+                    <SelectItem value="Electronics and Communication Engineering">ECE</SelectItem>
+                    <SelectItem value="Mechanical Engineering">Mechanical</SelectItem>
+                    <SelectItem value="Civil Engineering">Civil</SelectItem>
+                    <SelectItem value="Electrical Engineering">Electrical</SelectItem>
+                    <SelectItem value="Biotechnology">Biotechnology</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={() => {
+                  setSearchTerm('');
+                  setFilterType('all');
+                  setFilterDepartment('all');
+                }}>
+                  <Filter className="h-4 w-4 mr-2" />
+                  Clear
+                </Button>
+                <Button variant="outline" onClick={() => exportEventsData([...filteredUpcomingEvents, ...filteredPastEvents], 'faculty-events.csv')}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export All
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Tabs defaultValue="upcoming" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
-            <TabsTrigger value="past">Past Events</TabsTrigger>
+            <TabsTrigger value="upcoming">
+              Upcoming Events ({filteredUpcomingEvents.length})
+            </TabsTrigger>
+            <TabsTrigger value="past">
+              Past Events ({filteredPastEvents.length})
+            </TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
           {/* Upcoming Events */}
           <TabsContent value="upcoming" className="space-y-6">
-            {upcomingEvents.length === 0 ? (
+            {filteredUpcomingEvents.length === 0 ? (
               <Card className="bg-gradient-card border-0 shadow-md">
                 <CardContent className="p-8 text-center">
                   <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -708,7 +863,7 @@ const FacultyEvents = () => {
                 </CardContent>
               </Card>
             ) : (
-              upcomingEvents.map((event) => (
+              filteredUpcomingEvents.map((event) => (
                 <Card key={event._id} className="bg-gradient-card border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                   <CardHeader className="pb-4">
                     <div className="flex justify-between items-start">
@@ -716,6 +871,7 @@ const FacultyEvents = () => {
                         <CardTitle className="flex items-center space-x-3 mb-2">
                           <span className="text-xl font-bold">{event.title}</span>
                           <Badge variant="outline" className="px-3 py-1">{event.type}</Badge>
+                          <div className={`w-3 h-3 rounded-full ${getEventStatus(event).color}`} title={getEventStatus(event).text}></div>
                         </CardTitle>
                         <CardDescription className="flex items-center space-x-4 text-base">
                           <span className="flex items-center space-x-1">
@@ -730,9 +886,14 @@ const FacultyEvents = () => {
                           )}
                         </CardDescription>
                       </div>
-                      <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-2 text-sm font-semibold">
-                        {event.credits} credits
-                      </Badge>
+                      <div className="flex items-center space-x-2">
+                        <Badge className="bg-primary/10 text-primary border-primary/20 px-3 py-1 text-sm font-semibold">
+                          {event.credits} credits
+                        </Badge>
+                        <Badge className={`${getEventStatus(event).color} text-white px-3 py-1 text-xs font-medium`}>
+                          {getEventStatus(event).text}
+                        </Badge>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -817,7 +978,7 @@ const FacultyEvents = () => {
                           className="flex items-center space-x-2"
                           onClick={() => handleDeleteEvent(event)}
                         >
-                          <Settings className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                           <span>Delete</span>
                         </Button>
                       </div>
@@ -830,7 +991,16 @@ const FacultyEvents = () => {
 
           {/* Past Events */}
           <TabsContent value="past" className="space-y-4">
-            {pastEvents.map((event) => (
+            {filteredPastEvents.length === 0 ? (
+              <Card className="bg-gradient-card border-0 shadow-md">
+                <CardContent className="p-8 text-center">
+                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Past Events Found</h3>
+                  <p className="text-muted-foreground">No events match your current filters.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredPastEvents.map((event) => (
               <Card key={event._id || event.id} className="bg-gradient-card border-0 shadow-lg">
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start">
@@ -848,40 +1018,62 @@ const FacultyEvents = () => {
                         <BarChart3 className="mr-2 h-4 w-4" />
                         View Report
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => exportEventsData([event], `${event.title}-report.csv`)}>
+                        <Download className="mr-2 h-4 w-4" />
                         Export Data
                       </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              ))
+            )}
           </TabsContent>
 
           {/* Analytics */}
           <TabsContent value="analytics">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Event Analytics Dashboard</h2>
+              <Button variant="outline" onClick={() => exportEventsData([...upcomingEvents, ...pastEvents], 'analytics-report.csv')}>
+                <FileText className="mr-2 h-4 w-4" />
+                Export Analytics
+              </Button>
+            </div>
+            
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <Card className="bg-gradient-card border-0 shadow-md">
+              <Card className="bg-gradient-card border-0 shadow-md hover:shadow-lg transition-shadow">
                 <CardContent className="p-6 text-center">
-                  <div className="text-3xl font-bold">{analytics.totalEvents}</div>
+                  <div className="flex items-center justify-center mb-2">
+                    <CalendarDays className="h-8 w-8 text-primary" />
+                  </div>
+                  <div className="text-3xl font-bold text-primary">{analytics.totalEvents}</div>
                   <div className="text-sm text-muted-foreground">Total Events</div>
                 </CardContent>
               </Card>
-              <Card className="bg-gradient-card border-0 shadow-md">
+              <Card className="bg-gradient-card border-0 shadow-md hover:shadow-lg transition-shadow">
                 <CardContent className="p-6 text-center">
-                  <div className="text-3xl font-bold">{analytics.totalAttendees}</div>
+                  <div className="flex items-center justify-center mb-2">
+                    <Users className="h-8 w-8 text-green-600" />
+                  </div>
+                  <div className="text-3xl font-bold text-green-600">{analytics.totalAttendees}</div>
                   <div className="text-sm text-muted-foreground">Total Attendees</div>
                 </CardContent>
               </Card>
-              <Card className="bg-gradient-card border-0 shadow-md">
+              <Card className="bg-gradient-card border-0 shadow-md hover:shadow-lg transition-shadow">
                 <CardContent className="p-6 text-center">
-                  <div className="text-3xl font-bold">{analytics.avgRating}</div>
+                  <div className="flex items-center justify-center mb-2">
+                    <Award className="h-8 w-8 text-yellow-600" />
+                  </div>
+                  <div className="text-3xl font-bold text-yellow-600">{analytics.avgRating}</div>
                   <div className="text-sm text-muted-foreground">Avg Rating</div>
                 </CardContent>
               </Card>
-              <Card className="bg-gradient-card border-0 shadow-md">
+              <Card className="bg-gradient-card border-0 shadow-md hover:shadow-lg transition-shadow">
                 <CardContent className="p-6 text-center">
-                  <div className="text-3xl font-bold">{analytics.attendanceRate}</div>
+                  <div className="flex items-center justify-center mb-2">
+                    <TrendingUp className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <div className="text-3xl font-bold text-blue-600">{analytics.attendanceRate}</div>
                   <div className="text-sm text-muted-foreground">Attendance Rate</div>
                 </CardContent>
               </Card>

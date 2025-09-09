@@ -1,5 +1,5 @@
 const express = require("express");
-const auth = require("../middleware/auth");
+const { authMiddleware } = require("../middleware/auth");
 const Activity = require("../models/Activity");
 const Event = require("../models/Event");
 
@@ -96,7 +96,7 @@ router.get("/student/:userId", async (req, res) => {
 });
 
 // Get general dashboard info (for authenticated user)
-router.get("/", auth, (req, res) => {
+router.get("/", authMiddleware, (req, res) => {
   res.json({
     message: `Welcome ${req.user.role}!`,
     userId: req.user.userId,
