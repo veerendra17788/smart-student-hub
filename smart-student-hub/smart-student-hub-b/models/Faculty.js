@@ -11,7 +11,8 @@ const facultySchema = new mongoose.Schema({
   employeeId: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true
   },
   title: {
     type: String,
@@ -32,7 +33,8 @@ const facultySchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    lowercase: true
+    lowercase: true,
+    index: true
   },
   phone: {
     type: String,
@@ -297,8 +299,6 @@ facultySchema.virtual('totalExperience').get(function() {
 
 // Index for better query performance
 facultySchema.index({ facultyId: 1 });
-facultySchema.index({ employeeId: 1 });
-facultySchema.index({ email: 1 });
 facultySchema.index({ department: 1 });
 facultySchema.index({ designation: 1 });
 facultySchema.index({ isActive: 1 });

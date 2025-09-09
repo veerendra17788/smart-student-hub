@@ -411,10 +411,10 @@ const StudentDashboard = () => {
                     Generate Portfolio
                   </Link>
                 </Button>
-                <Button variant="outline" asChild className="w-full border-white/30 text-white hover:bg-white/10">
+                <Button variant="outline" asChild className="w-full border-white/30 text-black hover:bg-grey/10">
                   <Link to="/student/recommendations">
-                    <AlertCircle className="mr-2 h-4 w-4" />
-                    View Recommendations
+                    <Target className="mr-2 h-4 w-4" />
+                    AI Recommendations
                   </Link>
                 </Button>
               </CardContent>

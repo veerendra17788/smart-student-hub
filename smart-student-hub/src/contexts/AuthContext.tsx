@@ -93,6 +93,7 @@ interface AuthContextType {
   refreshToken: () => Promise<boolean>;
   isAuthenticated: boolean;
   token: string | null;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -111,6 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [refreshTokenValue, setRefreshTokenValue] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load user from localStorage if already logged in
   useEffect(() => {
@@ -122,6 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(storedToken);
       setRefreshTokenValue(storedRefreshToken);
     }
+    setIsLoading(false);
 
     // Listen for token refresh events from API client
     const handleTokenRefresh = (event: CustomEvent) => {
@@ -260,6 +263,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshProfile,
     refreshToken,
     isAuthenticated: !!user,
+    isLoading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

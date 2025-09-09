@@ -342,4 +342,57 @@ router.put("/:rollNo/profile", async (req, res) => {
   }
 });
 
+// PUT /api/student/:rollNo/skills - Update student skills
+router.put("/:rollNo/skills", async (req, res) => {
+  try {
+    const { rollNo } = req.params;
+    const { skills } = req.body;
+
+    // Validate skills array
+    if (!Array.isArray(skills)) {
+      return res.status(400).json({
+        success: false,
+        message: "Skills must be an array"
+      });
+    }
+
+    // Filter out empty strings and trim whitespace
+    const cleanedSkills = skills
+      .filter(skill => skill && typeof skill === 'string')
+      .map(skill => skill.trim())
+      .filter(skill => skill.length > 0);
+
+    const student = await Student.findOneAndUpdate(
+      { rollNumber: rollNo.toUpperCase(), isActive: true },
+      { skills: cleanedSkills },
+      { new: true, runValidators: true }
+    ).select('rollNumber name skills updatedAt');
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Skills updated successfully",
+      data: {
+        rollNumber: student.rollNumber,
+        name: student.name,
+        skills: student.skills,
+        updatedAt: student.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error("Skills update error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

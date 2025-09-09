@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, Mail, Phone, MapPin, GraduationCap, Edit, Plus, Calendar, BookOpen, Award, Activity } from "lucide-react";
+import { User, Mail, Phone, MapPin, GraduationCap, Edit, Plus, Calendar, BookOpen, Award, Activity, X, Check, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,6 +40,7 @@ interface StudentData {
     relation: string;
   };
   profilePicture?: string;
+  skills?: string[];
   activities: Array<{
     type: string;
     title: string;
@@ -73,11 +74,15 @@ interface StudentData {
 }
 
 const StudentProfile = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [editableSkills, setEditableSkills] = useState<string[]>([]);
+  const [newSkill, setNewSkill] = useState("");
+  const [savingSkills, setSavingSkills] = useState(false);
 
   // Extract skills from activities
   const extractSkillsFromActivities = (activities: StudentData['activities']) => {
@@ -101,6 +106,11 @@ const StudentProfile = () => {
 
   useEffect(() => {
     const fetchStudentProfile = async () => {
+      // Wait for auth to finish loading before checking user
+      if (authLoading) {
+        return;
+      }
+      
       if (!user?.rollNumber) {
         setError("Roll number not found. Please login again.");
         setLoading(false);
@@ -135,9 +145,9 @@ const StudentProfile = () => {
     };
 
     fetchStudentProfile();
-  }, [user?.rollNumber, toast]);
+  }, [user?.rollNumber, authLoading, toast]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <AppLayout>
         <div className="space-y-6">
@@ -197,11 +207,79 @@ const StudentProfile = () => {
     );
   }
 
-  const skills = extractSkillsFromActivities(studentData.activities);
+  // Combine skills from activities and direct skills field
+  const activitySkills = extractSkillsFromActivities(studentData.activities);
+  const directSkills = studentData.skills || [];
+  const allSkills = [...new Set([...directSkills, ...activitySkills])];
   const interests = getInterestsFromActivities(studentData.activities);
   const nameParts = studentData.name.split(' ');
   const firstName = nameParts[0] || '';
   const lastName = nameParts.slice(1).join(' ') || '';
+
+  // Skills editing functions
+  const handleEditSkills = () => {
+    setEditableSkills([...allSkills]);
+    setIsEditingSkills(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingSkills(false);
+    setEditableSkills([]);
+    setNewSkill("");
+  };
+
+  const handleAddSkill = () => {
+    if (newSkill.trim() && !editableSkills.includes(newSkill.trim())) {
+      setEditableSkills([...editableSkills, newSkill.trim()]);
+      setNewSkill("");
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove: string) => {
+    setEditableSkills(editableSkills.filter(skill => skill !== skillToRemove));
+  };
+
+  const handleSaveSkills = async () => {
+    if (!user?.rollNumber) return;
+    
+    setSavingSkills(true);
+    try {
+      const response = await fetch(`http://localhost:5000/api/student/${user.rollNumber}/skills`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ skills: editableSkills }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update the student data with new skills
+        setStudentData(prev => prev ? { ...prev, skills: editableSkills } : null);
+        setIsEditingSkills(false);
+        setEditableSkills([]);
+        toast({
+          title: "Success",
+          description: "Skills updated successfully!",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to update skills",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to connect to server",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingSkills(false);
+    }
+  };
 
   return (
     <AppLayout>
@@ -398,21 +476,110 @@ const StudentProfile = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     Skills
-                    <Badge variant="secondary">{skills.length}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">{allSkills.length}</Badge>
+                      {!isEditingSkills && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleEditSkills}
+                          className="h-6 px-2"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {skills.length > 0 ? (
-                      skills.map((skill) => (
-                        <Badge key={skill} variant="secondary">
-                          {skill}
-                        </Badge>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm">No skills extracted from activities yet</p>
-                    )}
-                  </div>
+                  {isEditingSkills ? (
+                    <div className="space-y-4">
+                      {/* Add new skill input */}
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add a new skill..."
+                          value={newSkill}
+                          onChange={(e) => setNewSkill(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddSkill();
+                            }
+                          }}
+                          className="flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleAddSkill}
+                          disabled={!newSkill.trim()}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      {/* Editable skills list */}
+                      <div className="flex flex-wrap gap-2">
+                        {editableSkills.map((skill, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="flex items-center gap-1 pr-1"
+                          >
+                            {skill}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleRemoveSkill(skill)}
+                              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        ))}
+                      </div>
+                      
+                      {/* Action buttons */}
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          size="sm"
+                          onClick={handleSaveSkills}
+                          disabled={savingSkills}
+                        >
+                          {savingSkills ? (
+                            <>
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Check className="h-3 w-3 mr-1" />
+                              Save
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                          disabled={savingSkills}
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {allSkills.length > 0 ? (
+                        allSkills.map((skill, index) => (
+                          <Badge key={index} variant="secondary">
+                            {skill}
+                          </Badge>
+                        ))
+                      ) : (
+                        <p className="text-muted-foreground text-sm">No skills added yet. Click the edit button to add your skills.</p>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

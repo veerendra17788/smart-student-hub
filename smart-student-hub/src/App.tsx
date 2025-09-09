@@ -12,7 +12,7 @@ import StudentProfile from "@/pages/student/StudentProfile";
 import StudentActivities from "@/pages/student/StudentActivities";
 import StudentPortfolio from "@/pages/student/StudentPortfolio";
 import StudentEvents from "@/pages/student/StudentEvents";
-import StudentRecommendations from "@/pages/student/StudentRecommendations";
+import AIRecommendations from "@/pages/student/AIRecommendations";
 import StudentAttendance from "@/pages/student/StudentAttendance";
 import StudentAcademics from "@/pages/student/StudentAcademics";
 import FacultyDashboard from "@/pages/faculty/FacultyDashboard";
@@ -42,7 +42,7 @@ const App = () => (
             <Route path="/student/activities" element={<StudentActivities />} />
             <Route path="/student/portfolio" element={<StudentPortfolio />} />
             <Route path="/student/events" element={<StudentEvents />} />
-            <Route path="/student/recommendations" element={<StudentRecommendations />} />
+            <Route path="/student/recommendations" element={<AIRecommendations />} />
             <Route path="/student/attendance" element={<StudentAttendance />} />
             <Route path="/student/academics" element={<StudentAcademics />} />
             
