@@ -15,6 +15,7 @@ import StudentEvents from "@/pages/student/StudentEvents";
 import StudentRecommendations from "@/pages/student/StudentRecommendations";
 import StudentAttendance from "@/pages/student/StudentAttendance";
 import StudentAcademics from "@/pages/student/StudentAcademics";
+import StudentAcademicCalendar from "@/pages/student/StudentAcademicCalendar";
 import FacultyDashboard from "@/pages/faculty/FacultyDashboard";
 import FacultyApprovals from "@/pages/faculty/FacultyApprovals";
 import FacultyEvents from "@/pages/faculty/FacultyEvents";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/student/recommendations" element={<StudentRecommendations />} />
             <Route path="/student/attendance" element={<StudentAttendance />} />
             <Route path="/student/academics" element={<StudentAcademics />} />
+            <Route path="/student/academic-calendar" element={<StudentAcademicCalendar />} />
             
             {/* Faculty Routes */}
             <Route path="/faculty/dashboard" element={<FacultyDashboard />} />

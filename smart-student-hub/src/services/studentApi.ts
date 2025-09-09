@@ -47,6 +47,20 @@ export interface SubjectAttendance {
   attendancePercentage: number;
 }
 
+export interface DailyAttendanceRecord {
+  date: string;
+  subjectCode: string;
+  subjectName: string;
+  status: 'present' | 'absent' | 'late';
+  period?: number;
+  remarks?: string;
+}
+
+export interface CalendarAttendanceData {
+  dailyAttendance: DailyAttendanceRecord[];
+  subjects: SubjectAttendance[];
+}
+
 export interface Activity {
   type: 'competition' | 'certification' | 'internship' | 'project' | 'workshop' | 'seminar';
   title: string;
@@ -160,6 +174,29 @@ class StudentApiService {
     return this.makeRequest(`/student/${rollNumber}/activity`, {
       method: 'POST',
       body: JSON.stringify(activityData),
+    });
+  }
+
+  // Get calendar attendance data
+  async getCalendarAttendance(rollNumber: string, year?: number, month?: number): Promise<ApiResponse<CalendarAttendanceData>> {
+    const params = new URLSearchParams();
+    if (year !== undefined) params.append('year', year.toString());
+    if (month !== undefined) params.append('month', month.toString());
+    
+    const queryString = params.toString();
+    const endpoint = `/student/${rollNumber}/attendance/calendar${queryString ? `?${queryString}` : ''}`;
+    
+    return this.makeRequest<CalendarAttendanceData>(endpoint);
+  }
+
+  // Add daily attendance record
+  async addDailyAttendance(rollNumber: string, attendanceData: Omit<DailyAttendanceRecord, 'date'> & { date: Date }): Promise<ApiResponse<{ rollNumber: string; attendanceRecord: DailyAttendanceRecord }>> {
+    return this.makeRequest(`/student/${rollNumber}/attendance/daily`, {
+      method: 'POST',
+      body: JSON.stringify({
+        ...attendanceData,
+        date: attendanceData.date.toISOString()
+      }),
     });
   }
 }

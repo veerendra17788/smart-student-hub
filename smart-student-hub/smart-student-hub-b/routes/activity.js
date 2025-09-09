@@ -9,7 +9,12 @@ const router = express.Router();
 // Multer configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/");
+    const uploadDir = "uploads/";
+    // Create uploads directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
@@ -191,14 +196,53 @@ async function analyzeCertificateWithGemini(certificatePath, activityData) {
 // POST /api/activities/upload-certificate
 router.post("/upload-certificate", [authMiddleware, upload.single('certificate')], async (req, res) => {
   try {
+    console.log("📝 Activity submission request received");
+    console.log("Request body:", req.body);
+    console.log("File info:", req.file ? { filename: req.file.filename, size: req.file.size, mimetype: req.file.mimetype } : "No file");
+    
     const { title, type, date, credits, description } = req.body;
 
+    // Validate required fields
     if (!title || !type || !date || !credits || !description) {
-      return res.status(400).json({ message: "All fields are required" });
+      console.log("❌ Missing required fields");
+      return res.status(400).json({ 
+        success: false,
+        message: "All fields are required",
+        missingFields: {
+          title: !title,
+          type: !type,
+          date: !date,
+          credits: !credits,
+          description: !description
+        }
+      });
     }
 
     if (!req.file) {
-      return res.status(400).json({ message: "Certificate file is required" });
+      console.log("❌ No certificate file uploaded");
+      return res.status(400).json({ 
+        success: false,
+        message: "Certificate file is required" 
+      });
+    }
+
+    // Validate file type
+    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedMimeTypes.includes(req.file.mimetype)) {
+      console.log("❌ Invalid file type:", req.file.mimetype);
+      return res.status(400).json({ 
+        success: false,
+        message: "Invalid file type. Only JPG, PNG, and PDF files are allowed." 
+      });
+    }
+
+    // Validate file size (5MB limit)
+    if (req.file.size > 5 * 1024 * 1024) {
+      console.log("❌ File too large:", req.file.size);
+      return res.status(400).json({ 
+        success: false,
+        message: "File size must be less than 5MB." 
+      });
     }
 
     // Analyze certificate with Gemini AI
@@ -254,10 +298,39 @@ router.post("/upload-certificate", [authMiddleware, upload.single('certificate')
     });
 
     await newActivity.save();
-    res.status(201).json({ message: "Activity submitted successfully", activity: newActivity });
+    console.log("✅ Activity saved successfully:", newActivity._id);
+    
+    res.status(201).json({ 
+      success: true,
+      message: "Activity submitted successfully", 
+      activity: newActivity 
+    });
   } catch (err) {
-    console.error("❌ Error creating activity:", err.message);
-    res.status(500).json({ message: "Error creating activity", error: err.message });
+    console.error("❌ Error creating activity:", err);
+    
+    // Handle specific database errors
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ 
+        success: false,
+        message: "Validation error", 
+        error: err.message,
+        details: err.errors
+      });
+    }
+    
+    if (err.name === 'MongoError' || err.name === 'MongoServerError') {
+      return res.status(500).json({ 
+        success: false,
+        message: "Database error", 
+        error: "Failed to save activity to database"
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false,
+      message: "Internal server error", 
+      error: err.message 
+    });
   }
 });
 

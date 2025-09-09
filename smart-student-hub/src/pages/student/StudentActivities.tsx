@@ -7,13 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Trophy, Upload, Calendar, CheckCircle, Clock, XCircle, Plus, Filter } from "lucide-react";
+import { Trophy, Upload, Calendar, CheckCircle, Clock, XCircle, Plus, Filter, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const StudentActivities = () => {
   const [activities, setActivities] = useState<any[]>([]);
+  const [filteredActivities, setFilteredActivities] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const fetchActivities = async () => {
     try {
@@ -24,6 +28,7 @@ const StudentActivities = () => {
       const data = await res.json();
       if (res.ok) {
         setActivities(data.activities);
+        setFilteredActivities(data.activities);
       } else {
         console.error(data.message);
       }
@@ -31,6 +36,21 @@ const StudentActivities = () => {
       console.error(err);
     }
   };
+
+  // Filter activities based on type and status
+  useEffect(() => {
+    let filtered = activities;
+    
+    if (typeFilter !== "all") {
+      filtered = filtered.filter(activity => activity.type === typeFilter);
+    }
+    
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(activity => activity.status === statusFilter);
+    }
+    
+    setFilteredActivities(filtered);
+  }, [activities, typeFilter, statusFilter]);
 
   useEffect(() => {
     fetchActivities();
@@ -69,21 +89,68 @@ const StudentActivities = () => {
   };
 
   const handleSubmit = async () => {
+    // Validate required fields
+    if (!formData.title.trim()) {
+      alert("Please enter an activity title.");
+      return;
+    }
+
+    if (!formData.type) {
+      alert("Please select an activity type.");
+      return;
+    }
+
+    if (!formData.date) {
+      alert("Please select a date.");
+      return;
+    }
+
+    if (!formData.credits.trim()) {
+      alert("Please enter credits.");
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      alert("Please enter a description.");
+      return;
+    }
+
     if (!selectedFile) {
       alert("Please select a certificate file.");
       return;
     }
 
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(selectedFile.type)) {
+      alert("Please select a valid file type (JPG, PNG, or PDF).");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      alert("File size must be less than 5MB.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
     const data = new FormData();
-    data.append("title", formData.title);
+    data.append("title", formData.title.trim());
     data.append("type", formData.type);
     data.append("date", formData.date);
-    data.append("credits", formData.credits);
-    data.append("description", formData.description);
+    data.append("credits", formData.credits.trim());
+    data.append("description", formData.description.trim());
     data.append("certificate", selectedFile);
 
     try {
       const token = localStorage.getItem("token");
+      
+      if (!token) {
+        alert("Authentication token not found. Please log in again.");
+        return;
+      }
+
       const res = await fetch("http://localhost:5000/api/activity/upload-certificate", {
         method: "POST",
         headers: {
@@ -93,17 +160,35 @@ const StudentActivities = () => {
       });
   
       const result = await res.json();
+      
       if (res.ok) {
-        alert("Activity submitted ✅");
+        alert("Activity submitted successfully! ✅");
         setActivities(prev => [result.activity, ...prev]);
         setOpen(false);
         setFormData({ title: "", type: "", date: "", credits: "", description: "" });
         setSelectedFile(null);
       } else {
-        alert(result.message || "Failed to submit");
+        // Handle specific error cases
+        if (res.status === 401) {
+          alert("Authentication failed. Please log in again.");
+        } else if (res.status === 400) {
+          alert(`Validation error: ${result.message || "Invalid input data"}`);
+        } else if (res.status === 500) {
+          alert(`Server error: ${result.message || "Internal server error"}`);
+        } else {
+          alert(result.message || `Failed to submit activity (Error ${res.status})`);
+        }
       }
     } catch (err) {
-      console.error(err);
+      console.error("Activity submission error:", err);
+      
+      if (err.name === 'NetworkError' || err.message.includes('fetch')) {
+        alert("Network error: Please check your internet connection and try again.");
+      } else {
+        alert("An unexpected error occurred while submitting the activity. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -169,8 +254,19 @@ const StudentActivities = () => {
                   <Input id="certificate" type="file" onChange={handleFileChange} />
                 </div>
                 <div className="flex justify-end space-x-2">
-                  <Button variant="outline">Cancel</Button>
-                  <Button onClick={handleSubmit}>Submit for Approval</Button>
+                  <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSubmit} disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit for Approval"
+                    )}
+                  </Button>
                 </div>
               </div>
             </DialogContent>
@@ -181,7 +277,7 @@ const StudentActivities = () => {
           <CardContent className="pt-6">
             <div className="flex items-center space-x-4">
               <Filter className="h-5 w-5 text-muted-foreground" />
-              <Select>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
@@ -191,9 +287,11 @@ const StudentActivities = () => {
                   <SelectItem value="certification">Certification</SelectItem>
                   <SelectItem value="internship">Internship</SelectItem>
                   <SelectItem value="research">Research</SelectItem>
+                  <SelectItem value="workshop">Workshop</SelectItem>
+                  <SelectItem value="volunteering">Volunteering</SelectItem>
                 </SelectContent>
               </Select>
-              <Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
@@ -209,41 +307,56 @@ const StudentActivities = () => {
         </Card>
 
         <div className="grid gap-4">
-          {activities.map((activity) => (
-            <Card key={activity._id || activity.id} className="bg-gradient-card border-0 shadow-md hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <Trophy className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-semibold">{activity.title}</h3>
-                      <Badge variant="outline">{activity.type}</Badge>
-                    </div>
-                    <p className="text-muted-foreground mb-3">{activity.description}</p>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{new Date(activity.date).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Trophy className="h-4 w-4" />
-                        <span>{activity.credits} credits</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    {getStatusIcon(activity.status)}
-                    <Badge className={getStatusColor(activity.status)}>
-                      {activity.status}
-                    </Badge>
-                    <Button variant="outline" size="sm">
-                      View Details
-                    </Button>
-                  </div>
-                </div>
+          {filteredActivities.length === 0 ? (
+            <Card className="bg-gradient-card border-0 shadow-md">
+              <CardContent className="p-8 text-center">
+                <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No activities found</h3>
+                <p className="text-muted-foreground">
+                  {typeFilter !== "all" || statusFilter !== "all" 
+                    ? "No activities match your current filters. Try adjusting the filters above."
+                    : "You haven't added any activities yet. Click 'Add Activity' to get started!"
+                  }
+                </p>
               </CardContent>
             </Card>
-          ))}
+          ) : (
+            filteredActivities.map((activity) => (
+              <Card key={activity._id || activity.id} className="bg-gradient-card border-0 shadow-md hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <Trophy className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-semibold">{activity.title}</h3>
+                        <Badge variant="outline">{activity.type}</Badge>
+                      </div>
+                      <p className="text-muted-foreground mb-3">{activity.description}</p>
+                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="h-4 w-4" />
+                          <span>{new Date(activity.date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Trophy className="h-4 w-4" />
+                          <span>{activity.credits} credits</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      {getStatusIcon(activity.status)}
+                      <Badge className={getStatusColor(activity.status)}>
+                        {activity.status}
+                      </Badge>
+                      <Button variant="outline" size="sm">
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
 
         <Card className="bg-gradient-primary text-white border-0 shadow-lg">

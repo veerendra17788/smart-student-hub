@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { 
   GraduationCap, 
   BookOpen, 
@@ -25,6 +26,7 @@ import {
 const StudentAcademics = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [academicData, setAcademicData] = useState<AcademicInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -92,7 +94,7 @@ const StudentAcademics = () => {
               Track your academic progress and semester-wise performance
             </p>
           </div>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => navigate('/student/academic-calendar')}>
             <Calendar className="mr-2 h-4 w-4" />
             Academic Calendar
           </Button>
