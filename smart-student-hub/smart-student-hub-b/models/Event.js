@@ -11,7 +11,7 @@ const EventSchema = new mongoose.Schema({
   department: { type: String, default: "all" },
   description: { type: String },
   status: { type: String, enum: ["active", "completed", "cancelled"], default: "active" },
-  registered: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],  // student IDs (legacy)
+  registered: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],  // student IDs (legacy)
   registrations: [
     {
       studentId: { type: String, required: true },
@@ -25,7 +25,7 @@ const EventSchema = new mongoose.Schema({
   ],
   feedback: [
     {
-      studentId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      studentId: { type: mongoose.Schema.Types.ObjectId, ref: "Student" },
       rating: { type: Number, min: 1, max: 5 },
       comment: String
     }

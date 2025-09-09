@@ -310,13 +310,13 @@ const FacultyDashboard = () => {
                     Review Approvals
                   </Link>
                 </Button>
-                <Button variant="outline" asChild className="w-full border-white/30 text-white hover:bg-white/10">
+                <Button variant="outline" asChild className="w-full border-white/30 text-black hover:bg-green/10">
                   <Link to="/faculty/events">
                     <Calendar className="mr-2 h-4 w-4" />
                     Create Event
                   </Link>
                 </Button>
-                <Button variant="outline" asChild className="w-full border-white/30 text-white hover:bg-white/10">
+                <Button variant="outline" asChild className="w-full border-white/30 text-black hover:bg-green/10">
                   <Link to="/faculty/analytics">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Generate Report

@@ -19,7 +19,7 @@ const ActivitySchema = new mongoose.Schema(
     proofUrl: { type: String }, // file/certificate link
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Student",
       required: true,
     },
     certificatePath: { type: String },

@@ -40,12 +40,23 @@ const StudentEvents = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
+      console.log('Student: Fetching events from API...');
       const response = await fetch('http://localhost:5000/api/events');
+      console.log('Student: Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const events = await response.json();
+      console.log('Student: Events received:', events.length, events);
       
       const now = new Date();
       const upcoming = events.filter(event => new Date(event.date) >= now);
       const past = events.filter(event => new Date(event.date) < now);
+      
+      console.log('Student: Upcoming events:', upcoming.length);
+      console.log('Student: Past events:', past.length);
       
       setUpcomingEvents(upcoming);
       setPastEvents(past);
@@ -55,12 +66,13 @@ const StudentEvents = () => {
         event.registrations?.some(reg => reg.studentId === user?.id)
       );
       setRegisteredEvents(userRegistrations);
+      console.log('Student: User registrations:', userRegistrations.length);
       
     } catch (error) {
       console.error('Error fetching events:', error);
       toast({
         title: "Error",
-        description: "Failed to load events. Please try again.",
+        description: `Failed to load events: ${error.message}`,
         variant: "destructive"
       });
     } finally {

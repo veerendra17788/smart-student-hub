@@ -5,10 +5,13 @@ const Event = require("../models/Event");
 // ✅ Create new event (faculty only)
 router.post("/", async (req, res) => {
   try {
+    console.log('Creating event with data:', req.body);
     const event = new Event(req.body);
-    await event.save();
-    res.status(201).json(event);
+    const savedEvent = await event.save();
+    console.log('Event created successfully:', savedEvent._id);
+    res.status(201).json(savedEvent);
   } catch (err) {
+    console.error('Error creating event:', err);
     res.status(400).json({ error: err.message });
   }
 });
@@ -44,14 +47,21 @@ router.get("/", async (req, res) => {
     const now = new Date();
 
     if (type === "upcoming") {
-      filter.date = { $gte: now };
+      // Set to start of today to include events happening today
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      filter.date = { $gte: startOfToday };
     } else if (type === "past") {
-      filter.date = { $lt: now };
+      // Set to start of today to exclude events happening today
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      filter.date = { $lt: startOfToday };
     }
 
+    console.log('Fetching events with filter:', filter);
     const events = await Event.find(filter).sort({ date: 1 });
+    console.log('Found events:', events.length);
     res.json(events);
   } catch (err) {
+    console.error('Error fetching events:', err);
     res.status(500).json({ error: err.message });
   }
 });

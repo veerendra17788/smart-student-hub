@@ -1,6 +1,6 @@
 const express = require('express');
 const AcademicCalendar = require('../models/AcademicCalendar');
-const authMiddleware = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -119,6 +119,60 @@ router.get('/month/:year/:month', authMiddleware, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch monthly events',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/academic-calendar/stats/summary - Get calendar statistics
+router.get('/stats/summary', authMiddleware, async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const [
+      totalEvents,
+      upcomingEvents,
+      monthlyEvents,
+      eventsByType
+    ] = await Promise.all([
+      AcademicCalendar.countDocuments({ isActive: true }),
+      AcademicCalendar.countDocuments({ 
+        isActive: true, 
+        startDate: { $gte: now } 
+      }),
+      AcademicCalendar.countDocuments({
+        isActive: true,
+        startDate: { $gte: startOfMonth, $lte: endOfMonth }
+      }),
+      AcademicCalendar.aggregate([
+        { $match: { isActive: true } },
+        { $group: { _id: '$eventType', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ])
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        totalEvents,
+        upcomingEvents,
+        monthlyEvents,
+        eventsByType,
+        currentMonth: {
+          year: now.getFullYear(),
+          month: now.getMonth() + 1,
+          name: now.toLocaleString('default', { month: 'long' })
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching calendar statistics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch calendar statistics',
       error: error.message
     });
   }
@@ -307,60 +361,6 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete academic event',
-      error: error.message
-    });
-  }
-});
-
-// GET /api/academic-calendar/stats/summary - Get calendar statistics
-router.get('/stats/summary', authMiddleware, async (req, res) => {
-  try {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-    const [
-      totalEvents,
-      upcomingEvents,
-      monthlyEvents,
-      eventsByType
-    ] = await Promise.all([
-      AcademicCalendar.countDocuments({ isActive: true }),
-      AcademicCalendar.countDocuments({ 
-        isActive: true, 
-        startDate: { $gte: now } 
-      }),
-      AcademicCalendar.countDocuments({
-        isActive: true,
-        startDate: { $gte: startOfMonth, $lte: endOfMonth }
-      }),
-      AcademicCalendar.aggregate([
-        { $match: { isActive: true } },
-        { $group: { _id: '$eventType', count: { $sum: 1 } } },
-        { $sort: { count: -1 } }
-      ])
-    ]);
-
-    res.json({
-      success: true,
-      data: {
-        totalEvents,
-        upcomingEvents,
-        monthlyEvents,
-        eventsByType,
-        currentMonth: {
-          year: now.getFullYear(),
-          month: now.getMonth() + 1,
-          name: now.toLocaleString('default', { month: 'long' })
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Error fetching calendar statistics:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch calendar statistics',
       error: error.message
     });
   }

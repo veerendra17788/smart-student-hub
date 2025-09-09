@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Portfolio = require('../models/Portfolio');
-const User = require('../models/User');
+const Student = require('../models/Student');
 const Activity = require('../models/Activity');
 const handlebars = require('handlebars');
 
@@ -28,84 +28,120 @@ const mongoose = require('mongoose');
 router.get('/data/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    // For demo purposes, create a mock user if userId is "user123"
-    let user;
+    console.log('Portfolio API called with userId:', userId);
+    
+    // Clean up any existing portfolios with null studentId that might cause conflicts
+    try {
+      await Portfolio.deleteMany({ 
+        $or: [
+          { studentId: null },
+          { studentId: { $exists: false } },
+          { userId: null },
+          { userId: { $exists: false } }
+        ]
+      });
+      console.log('Cleaned up invalid portfolio records');
+    } catch (cleanupError) {
+      console.log('Cleanup warning:', cleanupError.message);
+    }
+    
+    let student;
     let activities = [];
     
-    if (userId == 'user123') {
-      // Mock user data for testing
-      user = {
-        _id: userId,
-        name: 'Alex Johnson',
-        email: 'alex@university.edu',
-        phone: '+91 9876543210',
-        bio: 'Computer Science student passionate about AI and full-stack development',
-        department: 'Computer Science & Engineering'
-      };
+    // First try to find by rollNumber (if userId looks like a roll number)
+    if (userId && typeof userId === 'string' && userId.length <= 20) {
+      console.log('Searching by roll number:', userId.toUpperCase());
+      student = await Student.findOne({ rollNumber: userId.toUpperCase() });
+    }
+    
+    // If not found by roll number, try by ObjectId
+    if (!student && mongoose.Types.ObjectId.isValid(userId)) {
+      console.log('Searching by ObjectId:', userId);
+      student = await Student.findById(userId);
+    }
+    
+    // If still not found, try by email
+    if (!student && userId.includes('@')) {
+      console.log('Searching by email:', userId.toLowerCase());
+      student = await Student.findOne({ email: userId.toLowerCase() });
+    }
+    
+    console.log('Student found:', student ? 'Yes' : 'No');
+    
+    // If no student found, return error
+    if (!student) {
+      console.log('No student found for userId:', userId);
+      return res.status(404).json({ error: 'Student not found. Please provide valid roll number, email, or student ID.' });
+    }
+    
+    // Get student's activities from Activity collection
+    try {
+      console.log('Fetching activities for student:', student._id);
+      activities = await Activity.find({ 
+        $or: [
+          { userId: student._id },
+          { rollNumber: student.rollNumber },
+          { email: student.email }
+        ]
+      }).sort({ date: -1 });
+      console.log('Activities from Activity collection:', activities.length);
+    } catch (activityError) {
+      console.log('Error fetching activities from Activity collection:', activityError.message);
+      activities = [];
+    }
+    
+    // Also include activities from student's own activities array
+    try {
+      const studentActivities = (student.activities || []).map(activity => ({
+        title: activity.title || 'Untitled Activity',
+        type: activity.type || 'other',
+        date: activity.startDate || activity.endDate || new Date(),
+        credits: 5, // Default credits for student activities
+        description: activity.description || '',
+        organization: activity.organization || '',
+        status: activity.status || 'completed',
+        skills: activity.skills || [],
+        verified: false
+      }));
+      console.log('Activities from student record:', studentActivities.length);
       
-      // Mock activities data
-      activities = [
-        {
-          title: 'Hackathon Winner - TechFest 2024',
-          type: 'Competition',
-          date: new Date('2024-03-15'),
-          credits: 15,
-          description: 'Won first place in 48-hour hackathon building an AI-powered healthcare app',
-          verified: true
-        },
-        {
-          title: 'AWS Cloud Practitioner Certification',
-          type: 'Certification',
-          date: new Date('2024-03-10'),
-          credits: 10,
-          description: 'Completed comprehensive AWS cloud fundamentals certification',
-          verified: true
-        },
-        {
-          title: 'Internship at Microsoft',
-          type: 'Internship',
-          date: new Date('2024-02-28'),
-          credits: 25,
-          description: '3-month software development internship in Azure team',
-          verified: false
-        }
-      ];
-    } else {
-      // Check if userId is a valid ObjectId before querying
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ error: 'Invalid user ID format' });
-      }
-      
-      // Try to find real user by ObjectId
-      try {
-        user = await User.findById(userId);
-        if (!user) {
-          return res.status(404).json({ error: 'User not found' });
-        }
-        // Get user's activities
-        activities = await Activity.find({ userId }).sort({ date: -1 });
-      } catch (error) {
-        return res.status(400).json({ error: 'Invalid user ID format' });
-      }
+      // Combine both activity sources
+      activities = [...activities, ...studentActivities];
+    } catch (studentActivityError) {
+      console.log('Error processing student activities:', studentActivityError.message);
     }
 
     // Get existing portfolio or create default structure
-    let portfolio = await Portfolio.findOne({ userId });
+    let portfolio = await Portfolio.findOne({ 
+      $or: [
+        { userId: student._id },
+        { userId: student.rollNumber },
+        { userId: userId },
+        { studentId: student._id }, // Check for old studentId field
+        { studentId: student.rollNumber }
+      ]
+    });
     
     if (!portfolio) {
       // Create portfolio data object first
       const portfolioData = {
-        userId,
+        userId: student._id,
         personalInfo: {
-          name: user.name || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          bio: user.bio || '',
-          profileImage: user.profileImage || '',
-          location: user.location || '',
-          website: user.website || '',
-          linkedin: user.linkedin || '',
-          github: user.github || ''
+          name: student.name || '',
+          email: student.email || '',
+          phone: student.phone || '',
+          rollNumber: student.rollNumber || '',
+          department: student.department || '',
+          year: student.year || '',
+          section: student.section || '',
+          cgpa: student.cgpa || 0,
+          bio: `${student.department} student with ${student.cgpa} CGPA, passionate about technology and innovation.`,
+          profileImage: student.profilePicture || '',
+          location: student.fullAddress || '',
+          age: student.age || '',
+          gender: student.gender || '',
+          bloodGroup: student.bloodGroup || '',
+          overallAttendancePercentage: student.overallAttendancePercentage || 0
         },
         activities: activities,
         // Auto-extract skills from activities
@@ -115,32 +151,117 @@ router.get('/data/:userId', async (req, res) => {
           languages: extractSkillsFromActivities(activities, 'languages')
         },
         achievements: activities
-          .filter(a => a.type === 'Achievement' || a.type === 'Award')
+          .filter(a => a.type === 'Achievement' || a.type === 'Award' || a.type === 'competition')
           .map(a => ({
             title: a.title,
             description: a.description,
             date: a.date,
-            issuer: a.issuer || 'Institution'
+            issuer: a.issuer || a.organization || 'Institution'
           })),
         certificates: activities
-          .filter(a => a.type === 'Certification')
+          .filter(a => a.type === 'Certification' || a.type === 'certification')
           .map(a => ({
             title: a.title,
-            issuer: a.issuer || 'Certification Body',
+            issuer: a.issuer || a.organization || 'Certification Body',
             issueDate: a.date,
             verified: a.verified || false
+          })),
+        education: {
+          degree: `Bachelor of Technology in ${student.department || 'Engineering'}`,
+          institution: 'University/College Name',
+          year: student.year || 1,
+          cgpa: student.cgpa || 0,
+          semester: student.currentSemester || ((student.year || 1) * 2) - 1
+        },
+        projects: activities
+          .filter(a => a.type === 'project')
+          .map(a => ({
+            title: a.title,
+            description: a.description,
+            date: a.date,
+            organization: a.organization,
+            skills: a.skills || []
+          })),
+        internships: activities
+          .filter(a => a.type === 'internship')
+          .map(a => ({
+            title: a.title,
+            description: a.description,
+            organization: a.organization,
+            startDate: a.startDate,
+            endDate: a.endDate,
+            status: a.status
           }))
       };
       
       // Create the portfolio instance
-      portfolio = new Portfolio(portfolioData);
+      console.log('Creating new portfolio for student:', student._id);
+      try {
+        portfolio = new Portfolio(portfolioData);
+        await portfolio.save();
+        console.log('Portfolio created successfully');
+      } catch (saveError) {
+        if (saveError.code === 11000) {
+          console.log('Duplicate key error, trying to find existing portfolio...');
+          // Try to find existing portfolio with different criteria
+          portfolio = await Portfolio.findOne({}) // Find any existing portfolio
+            .sort({ createdAt: -1 }); // Get the most recent one
+          
+          if (portfolio) {
+            console.log('Found existing portfolio, updating it...');
+            // Update the existing portfolio with new data
+            Object.assign(portfolio, portfolioData);
+            await portfolio.save();
+          } else {
+            // If still no portfolio found, create with upsert
+            portfolio = await Portfolio.findOneAndUpdate(
+              { userId: student._id },
+              portfolioData,
+              { upsert: true, new: true }
+            );
+          }
+        } else {
+          throw saveError;
+        }
+      }
+    } else {
+      // Update existing portfolio with latest student data
+      portfolio.personalInfo = {
+        ...portfolio.personalInfo,
+        name: student.name || portfolio.personalInfo.name,
+        email: student.email || portfolio.personalInfo.email,
+        phone: student.phone || portfolio.personalInfo.phone,
+        rollNumber: student.rollNumber || portfolio.personalInfo.rollNumber,
+        department: student.department || portfolio.personalInfo.department,
+        year: student.year || portfolio.personalInfo.year,
+        section: student.section || portfolio.personalInfo.section,
+        cgpa: student.cgpa || portfolio.personalInfo.cgpa,
+        overallAttendancePercentage: student.overallAttendancePercentage || portfolio.personalInfo.overallAttendancePercentage
+      };
+      
+      // Update activities with latest data
+      portfolio.activities = activities;
+      
+      // Update skills
+      portfolio.skills = {
+        technical: [...new Set([...(portfolio.skills?.technical || []), ...extractSkillsFromActivities(activities, 'technical'), ...(student.skills || [])])],
+        soft: [...new Set([...(portfolio.skills?.soft || []), ...extractSkillsFromActivities(activities, 'soft')])],
+        languages: [...new Set([...(portfolio.skills?.languages || []), ...extractSkillsFromActivities(activities, 'languages')])]
+      };
+      
       await portfolio.save();
     }
 
+    console.log('Returning portfolio data');
     res.json(portfolio);
   } catch (error) {
     console.error('Error fetching portfolio data:', error);
-    res.status(500).json({ error: 'Failed to fetch portfolio data' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to fetch portfolio data',
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
@@ -150,10 +271,24 @@ router.put('/update/:userId', async (req, res) => {
     const { userId } = req.params;
     const updateData = req.body;
 
-    let portfolio = await Portfolio.findOne({ userId: userId });
+    let portfolio = await Portfolio.findOne({ 
+      $or: [
+        { userId: userId },
+        { userId: mongoose.Types.ObjectId.isValid(userId) ? userId : null }
+      ]
+    });
     
     if (!portfolio) {
-      portfolio = new Portfolio({ userId, ...updateData });
+      // Find student to get proper userId
+      let student = await Student.findOne({ rollNumber: userId.toUpperCase() }) || 
+                   await Student.findById(userId) || 
+                   await Student.findOne({ email: userId.toLowerCase() });
+      
+      if (student) {
+        portfolio = new Portfolio({ userId: student._id, ...updateData });
+      } else {
+        portfolio = new Portfolio({ userId, ...updateData });
+      }
     } else {
       Object.assign(portfolio, updateData);
     }
@@ -171,7 +306,12 @@ router.get('/generate/:userId/:template', async (req, res) => {
   try {
     const { userId, template } = req.params;
     
-    const portfolio = await Portfolio.findOne({ userId });
+    const portfolio = await Portfolio.findOne({ 
+      $or: [
+        { userId: userId },
+        { userId: mongoose.Types.ObjectId.isValid(userId) ? userId : null }
+      ]
+    });
     if (!portfolio) {
       return res.status(404).json({ error: 'Portfolio not found' });
     }
@@ -200,7 +340,12 @@ router.get('/generate/:userId', async (req, res) => {
     const { userId } = req.params;
     const template = 'modern'; // default template
     
-    const portfolio = await Portfolio.findOne({ userId });
+    const portfolio = await Portfolio.findOne({ 
+      $or: [
+        { userId: userId },
+        { userId: mongoose.Types.ObjectId.isValid(userId) ? userId : null }
+      ]
+    });
     if (!portfolio) {
       return res.status(404).json({ error: 'Portfolio not found' });
     }
@@ -229,7 +374,12 @@ router.get('/pdf/:userId', async (req, res) => {
     const { userId } = req.params;
     const template = 'modern'; // default template
     
-    const portfolio = await Portfolio.findOne({ userId });
+    const portfolio = await Portfolio.findOne({ 
+      $or: [
+        { userId: userId },
+        { userId: mongoose.Types.ObjectId.isValid(userId) ? userId : null }
+      ]
+    });
     if (!portfolio) {
       return res.status(404).json({ error: 'Portfolio not found' });
     }
@@ -285,7 +435,12 @@ router.get('/pdf/:userId/:template', async (req, res) => {
   try {
     const { userId, template } = req.params;
     
-    const portfolio = await Portfolio.findOne({ userId });
+    const portfolio = await Portfolio.findOne({ 
+      $or: [
+        { userId: userId },
+        { userId: mongoose.Types.ObjectId.isValid(userId) ? userId : null }
+      ]
+    });
     if (!portfolio) {
       return res.status(404).json({ error: 'Portfolio not found' });
     }
@@ -380,7 +535,12 @@ router.post('/toggle-public/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const portfolio = await Portfolio.findOne({ userId });
+    const portfolio = await Portfolio.findOne({ 
+      $or: [
+        { userId: userId },
+        { userId: mongoose.Types.ObjectId.isValid(userId) ? userId : null }
+      ]
+    });
     if (!portfolio) {
       return res.status(404).json({ error: 'Portfolio not found' });
     }
@@ -407,7 +567,12 @@ router.get('/analytics/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const portfolio = await Portfolio.findOne({ userId });
+    const portfolio = await Portfolio.findOne({ 
+      $or: [
+        { userId: userId },
+        { userId: mongoose.Types.ObjectId.isValid(userId) ? userId : null }
+      ]
+    });
     if (!portfolio) {
       return res.status(404).json({ error: 'Portfolio not found' });
     }
@@ -422,16 +587,26 @@ router.get('/analytics/:userId', async (req, res) => {
 // Helper function to extract skills from activities
 function extractSkillsFromActivities(activities, type) {
   const skillKeywords = {
-    technical: ['JavaScript', 'Python', 'React', 'Node.js', 'MongoDB', 'SQL', 'AWS', 'Docker', 'Git', 'HTML', 'CSS', 'Java', 'C++', 'Machine Learning', 'AI', 'Data Science'],
-    soft: ['Leadership', 'Communication', 'Teamwork', 'Problem Solving', 'Project Management', 'Public Speaking', 'Mentoring'],
-    languages: ['English', 'Hindi', 'Spanish', 'French', 'German', 'Mandarin', 'Japanese']
+    technical: ['JavaScript', 'Python', 'React', 'Node.js', 'MongoDB', 'SQL', 'AWS', 'Docker', 'Git', 'HTML', 'CSS', 'Java', 'C++', 'Machine Learning', 'AI', 'Data Science', 'Angular', 'Vue', 'TypeScript', 'PHP', 'Laravel', 'Django', 'Flask', 'Spring Boot', 'Kubernetes', 'Jenkins', 'Linux', 'Windows', 'Android', 'iOS', 'Flutter', 'React Native', 'TensorFlow', 'PyTorch', 'Pandas', 'NumPy', 'Scikit-learn', 'Blockchain', 'Ethereum', 'Solidity', 'GraphQL', 'REST API', 'Microservices', 'DevOps', 'CI/CD', 'Agile', 'Scrum'],
+    soft: ['Leadership', 'Communication', 'Teamwork', 'Problem Solving', 'Project Management', 'Public Speaking', 'Mentoring', 'Time Management', 'Critical Thinking', 'Adaptability', 'Creativity', 'Collaboration', 'Analytical Thinking', 'Decision Making', 'Conflict Resolution'],
+    languages: ['English', 'Hindi', 'Spanish', 'French', 'German', 'Mandarin', 'Japanese', 'Arabic', 'Portuguese', 'Russian', 'Italian', 'Korean', 'Dutch', 'Swedish', 'Norwegian']
   };
 
   const skills = new Set();
   const keywords = skillKeywords[type] || [];
 
   activities.forEach(activity => {
-    const text = `${activity.title} ${activity.description}`.toLowerCase();
+    // Check activity skills array first
+    if (activity.skills && Array.isArray(activity.skills)) {
+      activity.skills.forEach(skill => {
+        if (keywords.some(keyword => keyword.toLowerCase() === skill.toLowerCase())) {
+          skills.add(skill);
+        }
+      });
+    }
+    
+    // Then check title and description
+    const text = `${activity.title || ''} ${activity.description || ''}`.toLowerCase();
     keywords.forEach(keyword => {
       if (text.includes(keyword.toLowerCase())) {
         skills.add(keyword);
@@ -445,5 +620,22 @@ function extractSkillsFromActivities(activities, type) {
 function generateUniqueId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
+
+// Test endpoint to check if students exist
+router.get('/test/students', async (req, res) => {
+  try {
+    const studentCount = await Student.countDocuments();
+    const sampleStudents = await Student.find().limit(3).select('name rollNumber email department');
+    
+    res.json({
+      totalStudents: studentCount,
+      sampleStudents: sampleStudents,
+      message: studentCount > 0 ? 'Students found in database' : 'No students found in database'
+    });
+  } catch (error) {
+    console.error('Error in test endpoint:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;

@@ -104,28 +104,40 @@ const FacultyEvents = () => {
   // Fetch upcoming events
   const fetchUpcomingEvents = async () => {
     try {
+      console.log('Fetching upcoming events from:', `${API_BASE_URL}/events?type=upcoming`);
       const response = await fetch(`${API_BASE_URL}/events?type=upcoming`);
+      console.log('Response status:', response.status);
       if (response.ok) {
         const data = await response.json();
+        console.log('Upcoming events data:', data);
         setUpcomingEvents(data);
+      } else {
+        console.error('Failed to fetch upcoming events:', response.status, response.statusText);
+        toast.error(`Failed to load upcoming events: ${response.status}`);
       }
     } catch (error) {
       console.error('Error fetching upcoming events:', error);
-      toast.error('Failed to load upcoming events');
+      toast.error('Failed to load upcoming events - Network error');
     }
   };
 
   // Fetch past events
   const fetchPastEvents = async () => {
     try {
+      console.log('Fetching past events from:', `${API_BASE_URL}/events?type=past`);
       const response = await fetch(`${API_BASE_URL}/events?type=past`);
+      console.log('Past events response status:', response.status);
       if (response.ok) {
         const data = await response.json();
+        console.log('Past events data:', data);
         setPastEvents(data);
+      } else {
+        console.error('Failed to fetch past events:', response.status, response.statusText);
+        toast.error(`Failed to load past events: ${response.status}`);
       }
     } catch (error) {
       console.error('Error fetching past events:', error);
-      toast.error('Failed to load past events');
+      toast.error('Failed to load past events - Network error');
     }
   };
 
@@ -316,9 +328,15 @@ const FacultyEvents = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...createEventData,
+          title: createEventData.title,
+          type: createEventData.type,
+          date: createEventData.date,
+          time: createEventData.startTime,
+          location: createEventData.location,
           capacity: parseInt(createEventData.capacity) || 100,
           credits: parseInt(createEventData.credits) || 0,
+          department: createEventData.department || 'all',
+          description: createEventData.description
         }),
       });
 
