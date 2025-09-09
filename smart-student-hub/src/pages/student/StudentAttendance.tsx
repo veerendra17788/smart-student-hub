@@ -1,5 +1,6 @@
 import AppLayout from "@/components/layout/AppLayout";
 import AttendanceCard from "@/components/student/AttendanceCard";
+import AttendanceCalendarModal from "@/components/student/AttendanceCalendarModal";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,7 @@ const StudentAttendance = () => {
     subjects: SubjectAttendance[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
   const fetchAttendanceData = async () => {
     if (!user?.rollNumber) {
@@ -93,7 +95,10 @@ const StudentAttendance = () => {
               Track your class attendance and maintain academic requirements
             </p>
           </div>
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => setIsCalendarModalOpen(true)}
+          >
             <Calendar className="mr-2 h-4 w-4" />
             View Calendar
           </Button>
@@ -252,6 +257,17 @@ const StudentAttendance = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Calendar Modal */}
+        {attendanceData && (
+          <AttendanceCalendarModal
+            isOpen={isCalendarModalOpen}
+            onClose={() => setIsCalendarModalOpen(false)}
+            subjects={attendanceData.subjects}
+            rollNumber={user?.rollNumber || ""}
+            studentName={user?.name || "Student"}
+          />
+        )}
       </div>
     </AppLayout>
   );

@@ -29,7 +29,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/activity", require("./routes/activity"));
 app.use("/api/dashboard", require("./routes/dashboard"));
 app.use("/api/student", require("./routes/student"));
-app.use("/api/faculty", require("./routes/faculty"));
+app.use("/api/academic-calendar", require("./routes/academicCalendar"));
 app.use("/api/faculty", require("./routes/facultyStudent"));
 app.use("/api/faculty/dashboard", require("./routes/facultyDashboard"));
 app.use("/api/faculty/analytics", require("./routes/facultyAnalytics"));

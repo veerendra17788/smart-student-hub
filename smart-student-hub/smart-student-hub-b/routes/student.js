@@ -342,31 +342,74 @@ router.put("/:rollNo/profile", async (req, res) => {
   }
 });
 
-// PUT /api/student/:rollNo/skills - Update student skills
-router.put("/:rollNo/skills", async (req, res) => {
+
+// GET /api/student/:rollNo/attendance/calendar - Get daily attendance data for calendar view
+router.get("/:rollNo/attendance/calendar", async (req, res) => {
   try {
     const { rollNo } = req.params;
-    const { skills } = req.body;
-
-    // Validate skills array
-    if (!Array.isArray(skills)) {
-      return res.status(400).json({
+    const { year, month } = req.query;
+    
+    const student = await Student.findOne({ 
+      rollNumber: rollNo.toUpperCase(),
+      isActive: true 
+    }).select('dailyAttendance attendance');
+    
+    if (!student) {
+      return res.status(404).json({
         success: false,
-        message: "Skills must be an array"
+        message: "Student not found"
       });
     }
 
-    // Filter out empty strings and trim whitespace
-    const cleanedSkills = skills
-      .filter(skill => skill && typeof skill === 'string')
-      .map(skill => skill.trim())
-      .filter(skill => skill.length > 0);
+    let attendanceData = student.dailyAttendance || [];
+    
+    // Filter by year and month if provided
+    if (year && month) {
+      const startDate = new Date(parseInt(year), parseInt(month), 1);
+      const endDate = new Date(parseInt(year), parseInt(month) + 1, 0);
+      
+      attendanceData = attendanceData.filter(record => {
+        const recordDate = new Date(record.date);
+        return recordDate >= startDate && recordDate <= endDate;
+      });
+    }
 
-    const student = await Student.findOneAndUpdate(
-      { rollNumber: rollNo.toUpperCase(), isActive: true },
-      { skills: cleanedSkills },
-      { new: true, runValidators: true }
-    ).select('rollNumber name skills updatedAt');
+    res.json({
+      success: true,
+      data: {
+        dailyAttendance: attendanceData,
+        subjects: student.attendance || []
+      }
+    });
+
+  } catch (error) {
+    console.error("Error fetching calendar attendance:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch calendar attendance data",
+      error: error.message
+    });
+  }
+});
+
+// POST /api/student/:rollNo/attendance/daily - Add daily attendance record
+router.post("/:rollNo/attendance/daily", async (req, res) => {
+  try {
+    const { rollNo } = req.params;
+    const { date, subjectCode, subjectName, status, period, remarks } = req.body;
+    
+    if (!date || !subjectCode || !subjectName || !status) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: date, subjectCode, subjectName, status"
+      });
+    }
+
+    const student = await Student.findOne({ 
+      rollNumber: rollNo.toUpperCase(),
+      isActive: true 
+    });
+    
 
     if (!student) {
       return res.status(404).json({
@@ -375,21 +418,44 @@ router.put("/:rollNo/skills", async (req, res) => {
       });
     }
 
+
+    // Add daily attendance record
+    const attendanceRecord = {
+      date: new Date(date),
+      subjectCode,
+      subjectName,
+      status,
+      period,
+      remarks
+    };
+
+    await student.addDailyAttendance(attendanceRecord);
+
+    // Update overall attendance statistics
+    const subjectAttendance = student.attendance.find(att => att.subjectCode === subjectCode);
+    if (subjectAttendance) {
+      subjectAttendance.totalClasses += 1;
+      if (status === 'present' || status === 'late') {
+        subjectAttendance.attendedClasses += 1;
+      }
+      await student.save();
+    }
+
     res.json({
       success: true,
-      message: "Skills updated successfully",
+      message: "Daily attendance recorded successfully",
       data: {
         rollNumber: student.rollNumber,
-        name: student.name,
-        skills: student.skills,
-        updatedAt: student.updatedAt
+        attendanceRecord
       }
     });
+
   } catch (error) {
-    console.error("Skills update error:", error);
+    console.error("Error adding daily attendance:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Failed to add daily attendance",
+
       error: error.message
     });
   }

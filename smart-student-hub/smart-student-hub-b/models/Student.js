@@ -42,6 +42,35 @@ const semesterGradeSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
+// Schema for daily attendance records
+const dailyAttendanceSchema = new mongoose.Schema({
+  date: {
+    type: Date,
+    required: true
+  },
+  subjectCode: {
+    type: String,
+    required: true
+  },
+  subjectName: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['present', 'absent', 'late'],
+    required: true
+  },
+  period: {
+    type: Number,
+    min: 1,
+    max: 8
+  },
+  remarks: {
+    type: String
+  }
+}, { _id: false });
+
 // Schema for attendance tracking
 const attendanceSchema = new mongoose.Schema({
   subjectCode: {
@@ -235,6 +264,7 @@ const studentSchema = new mongoose.Schema({
   
   // Attendance
   attendance: [attendanceSchema],
+  dailyAttendance: [dailyAttendanceSchema],
   overallAttendancePercentage: {
     type: Number,
     min: 0,
@@ -327,6 +357,23 @@ studentSchema.methods.updateAttendance = function(subjectCode, totalClasses, att
   }
   
   return this.save();
+};
+
+// Instance method to add daily attendance
+studentSchema.methods.addDailyAttendance = function(attendanceData) {
+  this.dailyAttendance.push(attendanceData);
+  return this.save();
+};
+
+// Instance method to get attendance for a specific month
+studentSchema.methods.getMonthlyAttendance = function(year, month) {
+  const startDate = new Date(year, month, 1);
+  const endDate = new Date(year, month + 1, 0);
+  
+  return this.dailyAttendance.filter(record => {
+    const recordDate = new Date(record.date);
+    return recordDate >= startDate && recordDate <= endDate;
+  });
 };
 
 // Instance method to add activity
