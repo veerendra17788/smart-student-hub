@@ -83,9 +83,20 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2">
-              <GraduationCap className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold">Smart Student Hub</span>
+            <Link to="/" className="flex items-center space-x-3">
+              <img 
+                src="/logo-icon.svg" 
+                alt="Smart Student Hub Logo" 
+                className="h-10 w-10"
+              />
+              <div className="flex flex-col">
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  Smart Student Hub
+                </span>
+                <span className="text-xs text-slate-500 font-medium">
+                  Empowering Academic Excellence
+                </span>
+              </div>
             </Link>
 
             <div className="flex items-center space-x-4">

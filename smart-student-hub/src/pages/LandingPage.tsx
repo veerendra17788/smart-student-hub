@@ -20,9 +20,20 @@ const LandingPage = () => {
       {/* Header */}
       <header className="border-b border-white/10 bg-white/5 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <GraduationCap className="h-8 w-8 text-white" />
-            <span className="text-2xl font-bold text-white">Smart Student Hub</span>
+          <div className="flex items-center space-x-3">
+            <img 
+              src="/logo-icon.svg" 
+              alt="Smart Student Hub Logo" 
+              className="h-10 w-10 filter brightness-0 invert"
+            />
+            <div className="flex flex-col">
+              <span className="text-xl font-bold text-white">
+                Smart Student Hub
+              </span>
+              <span className="text-xs text-white/70 font-medium">
+                Empowering Academic Excellence
+              </span>
+            </div>
           </div>
           <div className="space-x-2">
             <Button variant="ghost" asChild className="text-black bg-white/100 hover:bg-white/80">
@@ -162,9 +173,20 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="border-t bg-background py-12">
         <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <GraduationCap className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">Smart Student Hub</span>
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <img 
+              src="/logo-icon.svg" 
+              alt="Smart Student Hub Logo" 
+              className="h-8 w-8"
+            />
+            <div className="flex flex-col items-center">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Smart Student Hub
+              </span>
+              <span className="text-xs text-muted-foreground font-medium">
+                Empowering Academic Excellence
+              </span>
+            </div>
           </div>
           <p className="text-muted-foreground">
             Empowering students and institutions with intelligent activity management

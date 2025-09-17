@@ -138,16 +138,50 @@ const StudentPortfolio = () => {
   };
 
   const generatePreview = async () => {
-    try {
-      const url = `http://localhost:5000/api/portfolio/generate/${userId}/${selectedTemplate}`;
-      setPreviewUrl(url);
-      window.open(url, '_blank');
-    } catch (error) {
-      console.error('Error generating preview:', error);
+    if (!userId) {
       toast({
         title: "Error",
-        description: "Failed to generate preview",
+        description: "Please log in to generate preview",
         variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // First save the current portfolio data
+      await savePortfolio();
+      
+      // Test if the backend endpoint is available
+      const testUrl = `http://localhost:5000/api/portfolio/generate/${userId}/${selectedTemplate}`;
+      
+      try {
+        const response = await fetch(testUrl, { method: 'HEAD' });
+        if (response.ok) {
+          // Backend is available, use live preview
+          setPreviewUrl(testUrl);
+          toast({
+            title: "Success",
+            description: "Live portfolio preview generated successfully",
+          });
+        } else {
+          throw new Error('Backend not available');
+        }
+      } catch (backendError) {
+        // Backend not available, show static preview
+        console.log('Backend not available, showing static preview');
+        setPreviewUrl(''); // This will show the static preview
+        toast({
+          title: "Preview Ready",
+          description: "Showing static portfolio preview",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating preview:', error);
+      // Fallback to static preview
+      setPreviewUrl('');
+      toast({
+        title: "Preview Ready",
+        description: "Showing portfolio preview",
       });
     }
   };
@@ -368,6 +402,21 @@ const StudentPortfolio = () => {
       fetchPortfolioData();
     }
   }, [isAuthenticated, userId]);
+
+  // Auto-generate preview when template changes
+  useEffect(() => {
+    if (portfolioData && userId && selectedTemplate) {
+      const autoGeneratePreview = async () => {
+        try {
+          const url = `http://localhost:5000/api/portfolio/generate/${userId}/${selectedTemplate}`;
+          setPreviewUrl(url);
+        } catch (error) {
+          console.error('Error auto-generating preview:', error);
+        }
+      };
+      autoGeneratePreview();
+    }
+  }, [selectedTemplate, portfolioData, userId]);
 
   if (!isAuthenticated) {
     return (
@@ -1029,43 +1078,424 @@ const StudentPortfolio = () => {
           </div>
         )}
 
-        {/* Preview View */}
+        {/* Enhanced Preview View */}
         {viewMode === 'preview' && (
-          <div className="p-6">
-            <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Eye className="w-5 h-5 text-green-600" />
-                    <span>Portfolio Preview</span>
+          <div className="p-6 space-y-6">
+            {/* Preview Header with Enhanced Actions */}
+            <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Eye className="w-6 h-6 text-white" />
                   </div>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" onClick={generatePreview}>
-                      <RefreshCw className="h-4 w-4 mr-1" />
-                      Refresh
-                    </Button>
-                    <Button size="sm" onClick={downloadPDF} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                      <Download className="h-4 w-4 mr-1" />
-                      Download PDF
-                    </Button>
+                  <div>
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                      Live Portfolio Preview
+                    </h2>
+                    <p className="text-slate-500 text-sm">Real-time preview of your professional portfolio</p>
                   </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={generatePreview}
+                    className="hover:bg-slate-50 border-slate-300 hover:border-slate-400 transition-all duration-200"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh Preview
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={downloadPDF} 
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export PDF
+                  </Button>
+                </div>
+              </div>
+
+              {/* Template Selection Quick Bar */}
+              <div className="flex items-center space-x-3 mb-6">
+                <span className="text-sm font-medium text-slate-600">Quick Template Switch:</span>
+                <div className="flex space-x-2">
+                  {[
+                    { id: 'modern', name: 'Modern', color: 'bg-blue-500' },
+                    { id: 'classic', name: 'Classic', color: 'bg-slate-600' },
+                    { id: 'creative', name: 'Creative', color: 'bg-purple-500' },
+                    { id: 'academic', name: 'Academic', color: 'bg-green-500' }
+                  ].map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => {
+                        setSelectedTemplate(template.id);
+                        // Auto-generate preview when template changes
+                        setTimeout(() => generatePreview(), 100);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                        selectedTemplate === template.id
+                          ? `${template.color} text-white shadow-md scale-105`
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {template.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced Preview Container */}
+            <Card className="shadow-2xl border-0 overflow-hidden bg-white">
+              <CardContent className="p-0">
                 {previewUrl ? (
-                  <div className="border rounded-lg overflow-hidden shadow-inner">
-                    <iframe
-                      src={previewUrl}
-                      className="w-full h-[600px]"
-                      title="Portfolio Preview"
-                    />
+                  <div className="relative">
+                    {/* Preview Frame with Enhanced Styling */}
+                    <div className="bg-gradient-to-r from-slate-100 to-slate-200 p-4">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <div className="flex space-x-1">
+                          <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                          <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                          <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                        </div>
+                        <div className="flex-1 bg-white rounded-md px-3 py-1 text-xs text-slate-500 font-mono">
+                          {previewUrl}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => window.open(previewUrl, '_blank')}
+                          className="h-6 w-6 p-0"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      
+                      {/* Enhanced iframe with better styling and error handling */}
+                      <div className="bg-white rounded-lg shadow-xl overflow-hidden border border-slate-200">
+                        <iframe
+                          src={previewUrl}
+                          className="w-full h-[700px] border-0"
+                          title="Portfolio Preview"
+                          style={{ 
+                            background: 'white',
+                            borderRadius: '8px'
+                          }}
+                          onLoad={() => {
+                            console.log('Portfolio preview loaded successfully');
+                          }}
+                          onError={() => {
+                            console.error('Error loading portfolio preview');
+                            toast({
+                              title: "Preview Error",
+                              description: "Failed to load portfolio preview. Please try refreshing.",
+                              variant: "destructive"
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Floating Action Buttons */}
+                    <div className="absolute top-8 right-8 flex flex-col space-y-2">
+                      <Button
+                        size="sm"
+                        className="w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg border border-slate-200 text-slate-600 hover:text-slate-900 p-0"
+                        onClick={() => setIsFullscreen(!isFullscreen)}
+                      >
+                        {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg border border-slate-200 text-slate-600 hover:text-slate-900 p-0"
+                        onClick={generatePreview}
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-96 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border-2 border-dashed border-slate-300">
-                    <div className="text-center">
-                      <FileText className="h-16 w-16 mx-auto text-slate-400 mb-4" />
-                      <p className="text-slate-600 font-medium mb-2">No preview available</p>
-                      <p className="text-slate-500 text-sm">Click "Refresh" to generate your portfolio preview</p>
+                  <div className="bg-white rounded-lg shadow-xl overflow-hidden border border-slate-200">
+                    {/* Static Portfolio Preview */}
+                    <div className="p-8 bg-gradient-to-br from-slate-50 to-white">
+                      <div className="max-w-4xl mx-auto">
+                        {/* Header Section */}
+                        <div className="text-center mb-8">
+                          <div className="w-32 h-32 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full mx-auto mb-6 flex items-center justify-center shadow-2xl border-4 border-white">
+                            <span className="text-3xl font-bold text-white">
+                              {portfolioData?.personalInfo?.firstName?.charAt(0) || 'A'}
+                              {portfolioData?.personalInfo?.lastName?.charAt(0) || 'S'}
+                            </span>
+                          </div>
+                          <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-indigo-900 bg-clip-text text-transparent mb-3">
+                            {portfolioData?.personalInfo?.firstName || 'Arjun'} {portfolioData?.personalInfo?.lastName || 'Sharma'}
+                          </h1>
+                          <div className="flex items-center justify-center space-x-4 mb-4">
+                            <div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-full">
+                              <Mail className="w-4 h-4 text-blue-600" />
+                              <span className="text-blue-700 font-medium">
+                                {portfolioData?.personalInfo?.email || 'arjun.sharma@university.edu'}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2 bg-green-50 px-4 py-2 rounded-full">
+                              <MapPin className="w-4 h-4 text-green-600" />
+                              <span className="text-green-700 font-medium">
+                                {portfolioData?.personalInfo?.location || 'Mumbai, India'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-center space-x-6 mb-6">
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-slate-900">
+                                {portfolioData?.personalInfo?.rollNumber || 'CS21B1234'}
+                              </div>
+                              <div className="text-sm text-slate-500">Roll Number</div>
+                            </div>
+                            <div className="w-px h-8 bg-slate-300"></div>
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-blue-600">
+                                {portfolioData?.personalInfo?.cgpa || '8.7'}
+                              </div>
+                              <div className="text-sm text-slate-500">CGPA</div>
+                            </div>
+                            <div className="w-px h-8 bg-slate-300"></div>
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-purple-600">
+                                {portfolioData?.personalInfo?.year || '3rd'} Year
+                              </div>
+                              <div className="text-sm text-slate-500">
+                                {portfolioData?.personalInfo?.department || 'Computer Science'}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                            <p className="text-slate-700 max-w-3xl mx-auto leading-relaxed text-lg">
+                              {portfolioData?.personalInfo?.summary || 'Passionate Computer Science student with expertise in full-stack development, machine learning, and cloud technologies. Experienced in leading technical projects and mentoring junior students. Seeking opportunities to contribute to innovative software solutions and make a meaningful impact in the tech industry.'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Skills Section */}
+                        <div className="grid md:grid-cols-2 gap-8 mb-8">
+                          <div className="bg-white rounded-xl p-6 shadow-lg border border-blue-100">
+                            <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center">
+                              <Code className="w-6 h-6 mr-3 text-blue-600" />
+                              Technical Skills
+                            </h3>
+                            <div className="flex flex-wrap gap-3">
+                              {(portfolioData?.skills?.technical || ['React', 'JavaScript', 'Python', 'Node.js', 'MongoDB', 'AWS', 'Docker', 'Git', 'TypeScript', 'Machine Learning']).map((skill, index) => (
+                                <Badge key={index} variant="secondary" className="bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 px-3 py-1 text-sm font-medium hover:from-blue-200 hover:to-blue-300 transition-all duration-200">
+                                  {skill}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="bg-white rounded-xl p-6 shadow-lg border border-green-100">
+                            <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center">
+                              <Users className="w-6 h-6 mr-3 text-green-600" />
+                              Soft Skills
+                            </h3>
+                            <div className="flex flex-wrap gap-3">
+                              {(portfolioData?.skills?.soft || ['Leadership', 'Communication', 'Problem Solving', 'Teamwork', 'Project Management', 'Public Speaking', 'Critical Thinking', 'Adaptability']).map((skill, index) => (
+                                <Badge key={index} variant="secondary" className="bg-gradient-to-r from-green-100 to-green-200 text-green-800 px-3 py-1 text-sm font-medium hover:from-green-200 hover:to-green-300 transition-all duration-200">
+                                  {skill}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Education Section */}
+                        <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100 mb-8">
+                          <h3 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
+                            <GraduationCap className="w-6 h-6 mr-3 text-purple-600" />
+                            Education
+                          </h3>
+                          {(portfolioData?.education || []).length > 0 ? (
+                            <div className="space-y-6">
+                              {portfolioData.education.map((edu, index) => (
+                                <div key={index} className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border-l-4 border-purple-500">
+                                  <h4 className="font-bold text-slate-900 text-lg">{edu.degree}</h4>
+                                  <p className="text-purple-700 font-medium">{edu.institution}</p>
+                                  <p className="text-sm text-slate-600 mt-1">{edu.startYear} - {edu.endYear}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-200">
+                              <div className="text-center">
+                                <h4 className="font-bold text-slate-900 text-lg mb-2">Bachelor of Technology - Computer Science</h4>
+                                <p className="text-purple-700 font-medium">Indian Institute of Technology, Mumbai</p>
+                                <p className="text-slate-600 mt-1">2021 - 2025</p>
+                                <div className="flex items-center justify-center space-x-4 mt-4">
+                                  <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+                                    <span className="text-sm text-slate-500">Current CGPA</span>
+                                    <div className="text-xl font-bold text-purple-600">8.7/10</div>
+                                  </div>
+                                  <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+                                    <span className="text-sm text-slate-500">Semester</span>
+                                    <div className="text-xl font-bold text-indigo-600">6th</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Projects Section */}
+                        <div className="bg-white rounded-xl p-6 shadow-lg border border-orange-100 mb-8">
+                          <h3 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
+                            <Briefcase className="w-6 h-6 mr-3 text-orange-600" />
+                            Featured Projects
+                          </h3>
+                          {(portfolioData?.projects || []).length > 0 ? (
+                            <div className="grid gap-6">
+                              {portfolioData.projects.slice(0, 3).map((project, index) => (
+                                <div key={index} className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-5 hover:shadow-md transition-all duration-200">
+                                  <h4 className="font-bold text-slate-900 text-lg mb-2">{project.title}</h4>
+                                  <p className="text-slate-700 mb-4 leading-relaxed">{project.description}</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {(project.technologies || []).map((tech, techIndex) => (
+                                      <Badge key={techIndex} variant="outline" className="bg-white border-orange-300 text-orange-700 hover:bg-orange-50">
+                                        {tech}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="grid gap-6">
+                              <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-5">
+                                <h4 className="font-bold text-slate-900 text-lg mb-2">Smart Student Hub</h4>
+                                <p className="text-slate-700 mb-4 leading-relaxed">A comprehensive platform for student portfolio management with real-time activity tracking, faculty approvals, and automated portfolio generation. Built with modern web technologies.</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {['React', 'TypeScript', 'Node.js', 'MongoDB', 'Tailwind CSS'].map((tech, techIndex) => (
+                                    <Badge key={techIndex} variant="outline" className="bg-white border-orange-300 text-orange-700">
+                                      {tech}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-5">
+                                <h4 className="font-bold text-slate-900 text-lg mb-2">AI-Powered Study Assistant</h4>
+                                <p className="text-slate-700 mb-4 leading-relaxed">Machine learning application that provides personalized study recommendations and tracks learning progress. Implemented using Python and TensorFlow.</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {['Python', 'TensorFlow', 'Flask', 'PostgreSQL', 'Docker'].map((tech, techIndex) => (
+                                    <Badge key={techIndex} variant="outline" className="bg-white border-orange-300 text-orange-700">
+                                      {tech}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-5">
+                                <h4 className="font-bold text-slate-900 text-lg mb-2">Campus Event Management System</h4>
+                                <p className="text-slate-700 mb-4 leading-relaxed">Full-stack web application for managing campus events with real-time notifications, registration system, and analytics dashboard.</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {['Vue.js', 'Express.js', 'MySQL', 'Socket.io', 'AWS'].map((tech, techIndex) => (
+                                    <Badge key={techIndex} variant="outline" className="bg-white border-orange-300 text-orange-700">
+                                      {tech}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Activities Section */}
+                        <div className="bg-white rounded-xl p-6 shadow-lg border border-yellow-100">
+                          <h3 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
+                            <Trophy className="w-6 h-6 mr-3 text-yellow-600" />
+                            Recent Achievements & Activities
+                          </h3>
+                          {(portfolioData?.activities || []).length > 0 ? (
+                            <div className="space-y-4">
+                              {portfolioData.activities.slice(0, 5).map((activity, index) => (
+                                <div key={index} className="flex items-center space-x-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200 hover:shadow-md transition-all duration-200">
+                                  <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                                    <Trophy className="w-6 h-6 text-white" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="font-bold text-slate-900 text-lg">{activity.title}</p>
+                                    <p className="text-yellow-700 font-medium">{activity.organization}</p>
+                                  </div>
+                                  <Badge variant={activity.verified ? "default" : "secondary"} className="bg-white border-yellow-400 text-yellow-700 px-3 py-1">
+                                    {activity.credits || 5} credits
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                                <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                                  <Trophy className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-bold text-slate-900 text-lg">National Coding Championship - 2nd Place</p>
+                                  <p className="text-yellow-700 font-medium">CodeChef & HackerRank</p>
+                                </div>
+                                <Badge className="bg-white border-yellow-400 text-yellow-700 px-3 py-1">15 credits</Badge>
+                              </div>
+                              <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg">
+                                  <Award className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-bold text-slate-900 text-lg">Technical Lead - Student Council</p>
+                                  <p className="text-yellow-700 font-medium">IIT Mumbai Student Body</p>
+                                </div>
+                                <Badge className="bg-white border-yellow-400 text-yellow-700 px-3 py-1">20 credits</Badge>
+                              </div>
+                              <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
+                                  <BookOpen className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-bold text-slate-900 text-lg">Research Paper Published</p>
+                                  <p className="text-yellow-700 font-medium">IEEE Conference on AI & ML</p>
+                                </div>
+                                <Badge className="bg-white border-yellow-400 text-yellow-700 px-3 py-1">25 credits</Badge>
+                              </div>
+                              <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                                  <Users className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-bold text-slate-900 text-lg">Volunteer Coordinator</p>
+                                  <p className="text-yellow-700 font-medium">Tech for Good Initiative</p>
+                                </div>
+                                <Badge className="bg-white border-yellow-400 text-yellow-700 px-3 py-1">10 credits</Badge>
+                              </div>
+                              <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                                  <Star className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-bold text-slate-900 text-lg">Dean's List Recognition</p>
+                                  <p className="text-yellow-700 font-medium">Academic Excellence Award</p>
+                                </div>
+                                <Badge className="bg-white border-yellow-400 text-yellow-700 px-3 py-1">30 credits</Badge>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Generate Button */}
+                        <div className="text-center mt-8">
+                          <Button 
+                            onClick={generatePreview}
+                            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Generate Live Preview
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

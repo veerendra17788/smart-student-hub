@@ -1,0 +1,1152 @@
+[{
+  "_id": {
+    "$oid": "68bf2c7bde342d1e2a7df89f"
+  },
+  "facultyId": "CSAE001",
+  "employeeId": "EMP85621",
+  "title": "Dr.",
+  "firstName": "Neha",
+  "lastName": "Iyer",
+  "email": "neha.iyer@computerscienceandengineering.university.edu",
+  "phone": "+91-7844621820",
+  "alternatePhone": "+91-8339743301",
+  "dateOfBirth": {
+    "$date": "1983-08-08T20:59:40.750Z"
+  },
+  "gender": "Female",
+  "nationality": "Indian",
+  "bloodGroup": "A+",
+  "maritalStatus": "Married",
+  "address": {
+    "street": "614 Mall Road",
+    "city": "Hyderabad",
+    "state": "Uttar Pradesh",
+    "pincode": "960556",
+    "country": "India"
+  },
+  "department": "Computer Science and Engineering",
+  "designation": "Professor",
+  "employmentType": "Permanent",
+  "joiningDate": {
+    "$date": "2010-05-26T10:04:45.345Z"
+  },
+  "experience": {
+    "total": 15,
+    "teaching": 14,
+    "industry": 3,
+    "research": 11
+  },
+  "qualifications": [
+    {
+      "degree": "Ph.D",
+      "field": "Technology",
+      "university": "NIT Trichy",
+      "year": 1990,
+      "grade": "First Class",
+      "specialization": "Research and Development",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8a0"
+      }
+    },
+    {
+      "degree": "MBA",
+      "field": "Technology",
+      "university": "Anna University",
+      "year": 2000,
+      "grade": "First Class",
+      "specialization": "Advanced Studies",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8a1"
+      }
+    },
+    {
+      "degree": "B.Tech",
+      "field": "Engineering",
+      "university": "VTU",
+      "year": 1980,
+      "grade": "Distinction",
+      "specialization": "Core Engineering",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8a2"
+      }
+    }
+  ],
+  "researchAreas": [
+    "Machine Learning",
+    "Artificial Intelligence"
+  ],
+  "publications": {
+    "journals": 43,
+    "conferences": 42,
+    "books": 1,
+    "chapters": 12,
+    "patents": 0
+  },
+  "hIndex": 18,
+  "citationCount": 393,
+  "subjectsTeaching": [
+    "Computer Fundamentals",
+    "Advanced Computer"
+  ],
+  "teachingLoad": 13,
+  "administrativeRoles": [],
+  "professionalMemberships": [
+    {
+      "organization": "CSI",
+      "membershipType": "Professional",
+      "membershipId": "MEM37704",
+      "startDate": {
+        "$date": "2017-07-26T17:25:00.030Z"
+      },
+      "current": true,
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8a3"
+      }
+    }
+  ],
+  "awards": [
+    {
+      "title": "Innovation Award",
+      "organization": "University",
+      "year": 2018,
+      "category": "Academic Excellence",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8a4"
+      }
+    }
+  ],
+  "studentsGuided": {
+    "phd": 4,
+    "mtech": 8,
+    "btech": 71,
+    "ongoing": 5,
+    "completed": 17
+  },
+  "teachingRating": 3.7,
+  "researchRating": 3.2,
+  "serviceRating": 4,
+  "salary": {
+    "basic": 130233,
+    "allowances": 22122,
+    "total": 152355,
+    "payScale": "UGC Scale"
+  },
+  "leaveBalance": {
+    "casual": 12,
+    "earned": 30,
+    "medical": 12,
+    "maternity": 180
+  },
+  "profiles": {
+    "googleScholar": "https://scholar.google.com/citations?user=NehaIyer",
+    "researchGate": "https://www.researchgate.net/profile/Neha_Iyer",
+    "linkedin": "https://linkedin.com/in/neha-iyer",
+    "orcid": "0000-0003-0002-0006"
+  },
+  "isActive": true,
+  "bio": "Experienced Professor in Computer Science and Engineering with 15 years of academic and research experience.",
+  "officeLocation": "Room 485, Computer Science and Engineering Block",
+  "officeHours": "Mon-Fri: 10:00 AM - 5:00 PM",
+  "emergencyContact": {
+    "name": "Anil Iyer",
+    "relationship": "Sibling",
+    "phone": "+91-8508673258",
+    "email": "emergency.neha@gmail.com"
+  },
+  "coursesHandled": [],
+  "projects": [],
+  "consultancyProjects": [],
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-09-08T19:20:27.653Z"
+  },
+  "updatedAt": {
+    "$date": "2025-09-15T18:32:46.713Z"
+  },
+  "lastLogin": {
+    "$date": "2025-09-15T18:32:46.712Z"
+  },
+  "passwordHash": "$2b$10$FAlkX1IMNLmMloGKMSSjO.eiZQZFDQ5Km8Z/5A8/bvqu/6H0C4beu",
+  "role": "faculty"
+},
+{
+  "_id": {
+    "$oid": "68bf2c7bde342d1e2a7df8aa"
+  },
+  "facultyId": "CSAE003",
+  "employeeId": "EMP96866",
+  "title": "Mr.",
+  "firstName": "Suresh",
+  "lastName": "Roy",
+  "email": "suresh.roy@computerscienceandengineering.university.edu",
+  "phone": "+91-8391328299",
+  "dateOfBirth": {
+    "$date": {
+      "$numberLong": "-71499673319"
+    }
+  },
+  "gender": "Male",
+  "nationality": "Indian",
+  "bloodGroup": "AB+",
+  "maritalStatus": "Single",
+  "address": {
+    "street": "817 MG Road",
+    "city": "Lucknow",
+    "state": "Madhya Pradesh",
+    "pincode": "967147",
+    "country": "India"
+  },
+  "department": "Computer Science and Engineering",
+  "designation": "Lecturer",
+  "employmentType": "Visiting",
+  "joiningDate": {
+    "$date": "2006-11-14T16:24:45.350Z"
+  },
+  "experience": {
+    "total": 18,
+    "teaching": 18,
+    "industry": 4,
+    "research": 15
+  },
+  "qualifications": [
+    {
+      "degree": "MBA",
+      "field": "Technology",
+      "university": "Mumbai University",
+      "year": 1991,
+      "grade": "First Class",
+      "specialization": "Research",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8ab"
+      }
+    },
+    {
+      "degree": "B.Sc",
+      "field": "Engineering",
+      "university": "Anna University",
+      "year": 1985,
+      "grade": "First Class",
+      "specialization": "Core Engineering",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8ac"
+      }
+    }
+  ],
+  "researchAreas": [
+    "Machine Learning",
+    "Artificial Intelligence",
+    "Data Science",
+    "Cybersecurity"
+  ],
+  "publications": {
+    "journals": 0,
+    "conferences": 0,
+    "books": 0,
+    "chapters": 0,
+    "patents": 0
+  },
+  "hIndex": 14,
+  "citationCount": 98,
+  "subjectsTeaching": [
+    "Computer Fundamentals",
+    "Advanced Computer",
+    "Computer Laboratory"
+  ],
+  "teachingLoad": 12,
+  "administrativeRoles": [],
+  "professionalMemberships": [
+    {
+      "organization": "ISTE",
+      "membershipType": "Professional",
+      "membershipId": "MEM69278",
+      "startDate": {
+        "$date": "2012-11-14T06:31:47.115Z"
+      },
+      "current": true,
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8ad"
+      }
+    }
+  ],
+  "awards": [
+    {
+      "title": "Research Excellence Award",
+      "organization": "University",
+      "year": 2016,
+      "category": "Academic Excellence",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8ae"
+      }
+    }
+  ],
+  "studentsGuided": {
+    "phd": 5,
+    "mtech": 10,
+    "btech": 59,
+    "ongoing": 8,
+    "completed": 19
+  },
+  "teachingRating": 3.1,
+  "researchRating": 4,
+  "serviceRating": 3.7,
+  "salary": {
+    "basic": 134411,
+    "allowances": 24061,
+    "total": 158472,
+    "payScale": "State Scale"
+  },
+  "leaveBalance": {
+    "casual": 12,
+    "earned": 30,
+    "medical": 12,
+    "maternity": 180
+  },
+  "profiles": {
+    "googleScholar": "https://scholar.google.com/citations?user=SureshRoy",
+    "researchGate": "https://www.researchgate.net/profile/Suresh_Roy",
+    "linkedin": "https://linkedin.com/in/suresh-roy",
+    "orcid": "0000-0007-0001-0007"
+  },
+  "isActive": true,
+  "bio": "Experienced Lecturer in Computer Science and Engineering with 18 years of academic and research experience.",
+  "officeLocation": "Room 327, Computer Science and Engineering Block",
+  "officeHours": "Mon-Fri: 10:00 AM - 5:00 PM",
+  "emergencyContact": {
+    "name": "Ravi Roy",
+    "relationship": "Parent",
+    "phone": "+91-8737172422",
+    "email": "emergency.suresh@gmail.com"
+  },
+  "coursesHandled": [],
+  "projects": [],
+  "consultancyProjects": [],
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-09-08T19:20:27.655Z"
+  },
+  "updatedAt": {
+    "$date": "2025-09-08T19:25:23.762Z"
+  },
+  "lastLogin": null,
+  "passwordHash": "$2b$10$FAlkX1IMNLmMloGKMSSjO.eiZQZFDQ5Km8Z/5A8/bvqu/6H0C4beu",
+  "role": "faculty"
+},
+{
+  "_id": {
+    "$oid": "68bf2c7bde342d1e2a7df8a5"
+  },
+  "facultyId": "CSAE002",
+  "employeeId": "EMP17995",
+  "title": "Dr.",
+  "firstName": "Meera",
+  "lastName": "Bansal",
+  "email": "meera.bansal@computerscienceandengineering.university.edu",
+  "phone": "+91-9226367465",
+  "alternatePhone": "+91-9299291440",
+  "dateOfBirth": {
+    "$date": "1983-05-18T03:09:32.881Z"
+  },
+  "gender": "Female",
+  "nationality": "Indian",
+  "bloodGroup": "B-",
+  "maritalStatus": "Single",
+  "address": {
+    "street": "608 Mall Road",
+    "city": "Hyderabad",
+    "state": "Gujarat",
+    "pincode": "834951",
+    "country": "India"
+  },
+  "department": "Computer Science and Engineering",
+  "designation": "Professor",
+  "employmentType": "Permanent",
+  "joiningDate": {
+    "$date": "2005-12-22T03:16:46.680Z"
+  },
+  "experience": {
+    "total": 19,
+    "teaching": 13,
+    "industry": 1,
+    "research": 11
+  },
+  "qualifications": [
+    {
+      "degree": "Ph.D",
+      "field": "Technology",
+      "university": "VTU",
+      "year": 2009,
+      "grade": "First Class",
+      "specialization": "Research and Development",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8a6"
+      }
+    },
+    {
+      "degree": "M.E",
+      "field": "Engineering",
+      "university": "Delhi University",
+      "year": 1995,
+      "grade": "Distinction",
+      "specialization": "Research",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8a7"
+      }
+    },
+    {
+      "degree": "B.Tech",
+      "field": "Engineering",
+      "university": "Anna University",
+      "year": 1994,
+      "grade": "Distinction",
+      "specialization": "Core Engineering",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8a8"
+      }
+    }
+  ],
+  "researchAreas": [
+    "Machine Learning",
+    "Artificial Intelligence",
+    "Data Science"
+  ],
+  "publications": {
+    "journals": 49,
+    "conferences": 41,
+    "books": 3,
+    "chapters": 4,
+    "patents": 6
+  },
+  "hIndex": 23,
+  "citationCount": 334,
+  "subjectsTeaching": [
+    "Computer Fundamentals",
+    "Advanced Computer"
+  ],
+  "teachingLoad": 15,
+  "administrativeRoles": [],
+  "professionalMemberships": [
+    {
+      "organization": "IEI",
+      "membershipType": "Professional",
+      "membershipId": "MEM27500",
+      "startDate": {
+        "$date": "2017-09-06T16:12:03.856Z"
+      },
+      "current": true,
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8a9"
+      }
+    }
+  ],
+  "awards": [],
+  "studentsGuided": {
+    "phd": 12,
+    "mtech": 6,
+    "btech": 90,
+    "ongoing": 3,
+    "completed": 46
+  },
+  "teachingRating": 4.9,
+  "researchRating": 4.8,
+  "serviceRating": 3.9,
+  "salary": {
+    "basic": 80992,
+    "allowances": 42968,
+    "total": 123960,
+    "payScale": "UGC Scale"
+  },
+  "leaveBalance": {
+    "casual": 12,
+    "earned": 30,
+    "medical": 12,
+    "maternity": 180
+  },
+  "profiles": {
+    "googleScholar": "https://scholar.google.com/citations?user=MeeraBansal",
+    "researchGate": "https://www.researchgate.net/profile/Meera_Bansal",
+    "linkedin": "https://linkedin.com/in/meera-bansal",
+    "orcid": "0000-0006-0006-0001"
+  },
+  "isActive": true,
+  "bio": "Experienced Professor in Computer Science and Engineering with 19 years of academic and research experience.",
+  "officeLocation": "Room 183, Computer Science and Engineering Block",
+  "officeHours": "Mon-Fri: 10:00 AM - 5:00 PM",
+  "emergencyContact": {
+    "name": "Tanya Bansal",
+    "relationship": "Sibling",
+    "phone": "+91-8291823816",
+    "email": "emergency.meera@gmail.com"
+  },
+  "coursesHandled": [],
+  "projects": [],
+  "consultancyProjects": [],
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-09-08T19:20:27.655Z"
+  },
+  "updatedAt": {
+    "$date": "2025-09-08T19:25:23.762Z"
+  },
+  "lastLogin": null,
+  "passwordHash": "$2b$10$FAlkX1IMNLmMloGKMSSjO.eiZQZFDQ5Km8Z/5A8/bvqu/6H0C4beu",
+  "role": "faculty"
+},
+{
+  "_id": {
+    "$oid": "68bf2c7bde342d1e2a7df8b4"
+  },
+  "facultyId": "CSAE005",
+  "employeeId": "EMP11686",
+  "title": "Dr.",
+  "firstName": "Tarun",
+  "lastName": "Verma",
+  "email": "tarun.verma@computerscienceandengineering.university.edu",
+  "phone": "+91-9464506725",
+  "alternatePhone": "+91-7896611436",
+  "dateOfBirth": {
+    "$date": "1977-05-30T01:02:19.188Z"
+  },
+  "gender": "Male",
+  "nationality": "Indian",
+  "bloodGroup": "O-",
+  "maritalStatus": "Married",
+  "address": {
+    "street": "779 Park Street",
+    "city": "Indore",
+    "state": "Delhi",
+    "pincode": "393837",
+    "country": "India"
+  },
+  "department": "Computer Science and Engineering",
+  "designation": "Assistant Professor",
+  "employmentType": "Permanent",
+  "joiningDate": {
+    "$date": "2014-01-11T20:19:18.523Z"
+  },
+  "experience": {
+    "total": 11,
+    "teaching": 11,
+    "industry": 0,
+    "research": 2
+  },
+  "qualifications": [
+    {
+      "degree": "Ph.D",
+      "field": "Technology",
+      "university": "Delhi University",
+      "year": 1999,
+      "grade": "First Class",
+      "specialization": "Research and Development",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8b5"
+      }
+    },
+    {
+      "degree": "MBA",
+      "field": "Science",
+      "university": "VTU",
+      "year": 2002,
+      "grade": "Second Class",
+      "specialization": "Applied Sciences",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8b6"
+      }
+    },
+    {
+      "degree": "B.E",
+      "field": "Engineering",
+      "university": "NIT Warangal",
+      "year": 1981,
+      "grade": "Distinction",
+      "specialization": "Core Engineering",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8b7"
+      }
+    }
+  ],
+  "researchAreas": [
+    "Machine Learning",
+    "Artificial Intelligence",
+    "Data Science",
+    "Cybersecurity"
+  ],
+  "publications": {
+    "journals": 18,
+    "conferences": 24,
+    "books": 5,
+    "chapters": 7,
+    "patents": 3
+  },
+  "hIndex": 31,
+  "citationCount": 409,
+  "subjectsTeaching": [
+    "Computer Fundamentals",
+    "Advanced Computer",
+    "Computer Laboratory"
+  ],
+  "teachingLoad": 14,
+  "administrativeRoles": [],
+  "professionalMemberships": [
+    {
+      "organization": "ACM",
+      "membershipType": "Professional",
+      "membershipId": "MEM36503",
+      "startDate": {
+        "$date": "2019-04-07T05:18:03.800Z"
+      },
+      "current": true,
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8b8"
+      }
+    }
+  ],
+  "awards": [],
+  "studentsGuided": {
+    "phd": 11,
+    "mtech": 16,
+    "btech": 99,
+    "ongoing": 2,
+    "completed": 77
+  },
+  "teachingRating": 4.5,
+  "researchRating": 3.8,
+  "serviceRating": 3.7,
+  "salary": {
+    "basic": 83951,
+    "allowances": 42859,
+    "total": 126810,
+    "payScale": "UGC Scale"
+  },
+  "leaveBalance": {
+    "casual": 12,
+    "earned": 30,
+    "medical": 12,
+    "maternity": 180
+  },
+  "profiles": {
+    "googleScholar": "https://scholar.google.com/citations?user=TarunVerma",
+    "researchGate": "https://www.researchgate.net/profile/Tarun_Verma",
+    "linkedin": "https://linkedin.com/in/tarun-verma",
+    "orcid": "0000-0003-0004-0007"
+  },
+  "isActive": true,
+  "bio": "Experienced Assistant Professor in Computer Science and Engineering with 11 years of academic and research experience.",
+  "officeLocation": "Room 121, Computer Science and Engineering Block",
+  "officeHours": "Mon-Fri: 10:00 AM - 5:00 PM",
+  "emergencyContact": {
+    "name": "Dinesh Verma",
+    "relationship": "Parent",
+    "phone": "+91-7118534736",
+    "email": "emergency.tarun@gmail.com"
+  },
+  "coursesHandled": [],
+  "projects": [],
+  "consultancyProjects": [],
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-09-08T19:20:27.656Z"
+  },
+  "updatedAt": {
+    "$date": "2025-09-08T19:25:23.762Z"
+  },
+  "lastLogin": null,
+  "passwordHash": "$2b$10$FAlkX1IMNLmMloGKMSSjO.eiZQZFDQ5Km8Z/5A8/bvqu/6H0C4beu",
+  "role": "faculty"
+},
+{
+  "_id": {
+    "$oid": "68bf2c7bde342d1e2a7df8b9"
+  },
+  "facultyId": "CSAE006",
+  "employeeId": "EMP15425",
+  "title": "Mr.",
+  "firstName": "Priya",
+  "lastName": "Rao",
+  "email": "priya.rao@computerscienceandengineering.university.edu",
+  "phone": "+91-9942608442",
+  "alternatePhone": "+91-9210656208",
+  "dateOfBirth": {
+    "$date": "1975-02-27T08:32:05.990Z"
+  },
+  "gender": "Female",
+  "nationality": "Indian",
+  "bloodGroup": "B-",
+  "maritalStatus": "Divorced",
+  "address": {
+    "street": "604 MG Road",
+    "city": "Jaipur",
+    "state": "Delhi",
+    "pincode": "620655",
+    "country": "India"
+  },
+  "department": "Computer Science and Engineering",
+  "designation": "Head of Department",
+  "employmentType": "Permanent",
+  "joiningDate": {
+    "$date": "2006-05-28T12:46:24.550Z"
+  },
+  "experience": {
+    "total": 19,
+    "teaching": 8,
+    "industry": 3,
+    "research": 17
+  },
+  "qualifications": [
+    {
+      "degree": "Ph.D",
+      "field": "Technology",
+      "university": "Jadavpur University",
+      "year": 1995,
+      "grade": "First Class",
+      "specialization": "Research and Development",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8ba"
+      }
+    },
+    {
+      "degree": "M.E",
+      "field": "Management",
+      "university": "IIT Kharagpur",
+      "year": 2003,
+      "grade": "First Class",
+      "specialization": "Applied Sciences",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8bb"
+      }
+    },
+    {
+      "degree": "B.Sc",
+      "field": "Engineering",
+      "university": "Pune University",
+      "year": 1985,
+      "grade": "First Class",
+      "specialization": "Core Engineering",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8bc"
+      }
+    }
+  ],
+  "researchAreas": [
+    "Machine Learning",
+    "Artificial Intelligence",
+    "Data Science",
+    "Cybersecurity"
+  ],
+  "publications": {
+    "journals": 0,
+    "conferences": 0,
+    "books": 0,
+    "chapters": 0,
+    "patents": 0
+  },
+  "hIndex": 6,
+  "citationCount": 255,
+  "subjectsTeaching": [
+    "Computer Fundamentals",
+    "Advanced Computer"
+  ],
+  "teachingLoad": 12,
+  "administrativeRoles": [],
+  "professionalMemberships": [
+    {
+      "organization": "CSI",
+      "membershipType": "Professional",
+      "membershipId": "MEM48969",
+      "startDate": {
+        "$date": "2018-08-19T12:41:05.873Z"
+      },
+      "current": true,
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8bd"
+      }
+    }
+  ],
+  "awards": [],
+  "studentsGuided": {
+    "phd": 3,
+    "mtech": 19,
+    "btech": 77,
+    "ongoing": 8,
+    "completed": 46
+  },
+  "teachingRating": 4.4,
+  "researchRating": 4.7,
+  "serviceRating": 3.4,
+  "salary": {
+    "basic": 116066,
+    "allowances": 21314,
+    "total": 137380,
+    "payScale": "State Scale"
+  },
+  "leaveBalance": {
+    "casual": 12,
+    "earned": 30,
+    "medical": 12,
+    "maternity": 180
+  },
+  "profiles": {
+    "googleScholar": "https://scholar.google.com/citations?user=PriyaRao",
+    "researchGate": "https://www.researchgate.net/profile/Priya_Rao",
+    "linkedin": "https://linkedin.com/in/priya-rao",
+    "orcid": "0000-0004-0001-0003"
+  },
+  "isActive": true,
+  "bio": "Experienced Head of Department in Computer Science and Engineering with 19 years of academic and research experience.",
+  "officeLocation": "Room 348, Computer Science and Engineering Block",
+  "officeHours": "Mon-Fri: 10:00 AM - 5:00 PM",
+  "emergencyContact": {
+    "name": "Umesh Rao",
+    "relationship": "Spouse",
+    "phone": "+91-8182809281",
+    "email": "emergency.priya@gmail.com"
+  },
+  "coursesHandled": [],
+  "projects": [],
+  "consultancyProjects": [],
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-09-08T19:20:27.656Z"
+  },
+  "updatedAt": {
+    "$date": "2025-09-08T19:25:23.762Z"
+  },
+  "lastLogin": null,
+  "passwordHash": "$2b$10$FAlkX1IMNLmMloGKMSSjO.eiZQZFDQ5Km8Z/5A8/bvqu/6H0C4beu",
+  "role": "faculty"
+},
+{
+  "_id": {
+    "$oid": "68bf2c7bde342d1e2a7df8af"
+  },
+  "facultyId": "CSAE004",
+  "employeeId": "EMP65206",
+  "title": "Dr.",
+  "firstName": "Vidya",
+  "lastName": "Tripathi",
+  "email": "vidya.tripathi@computerscienceandengineering.university.edu",
+  "phone": "+91-9637434420",
+  "alternatePhone": "+91-8786044601",
+  "dateOfBirth": {
+    "$date": {
+      "$numberLong": "-120304761881"
+    }
+  },
+  "gender": "Female",
+  "nationality": "Indian",
+  "bloodGroup": "O-",
+  "maritalStatus": "Divorced",
+  "address": {
+    "street": "255 Mall Road",
+    "city": "Kolkata",
+    "state": "Tamil Nadu",
+    "pincode": "106649",
+    "country": "India"
+  },
+  "department": "Computer Science and Engineering",
+  "designation": "Assistant Professor",
+  "employmentType": "Permanent",
+  "joiningDate": {
+    "$date": "2010-04-23T12:48:23.129Z"
+  },
+  "experience": {
+    "total": 15,
+    "teaching": 12,
+    "industry": 0,
+    "research": 4
+  },
+  "qualifications": [
+    {
+      "degree": "Ph.D",
+      "field": "Science",
+      "university": "JNTU",
+      "year": 1998,
+      "grade": "First Class",
+      "specialization": "Research and Development",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8b0"
+      }
+    },
+    {
+      "degree": "M.Tech",
+      "field": "Technology",
+      "university": "IIT Delhi",
+      "year": 2000,
+      "grade": "Distinction",
+      "specialization": "Advanced Studies",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8b1"
+      }
+    },
+    {
+      "degree": "B.Tech",
+      "field": "Engineering",
+      "university": "Jadavpur University",
+      "year": 1999,
+      "grade": "First Class",
+      "specialization": "Core Engineering",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8b2"
+      }
+    }
+  ],
+  "researchAreas": [
+    "Machine Learning",
+    "Artificial Intelligence",
+    "Data Science"
+  ],
+  "publications": {
+    "journals": 43,
+    "conferences": 37,
+    "books": 1,
+    "chapters": 10,
+    "patents": 0
+  },
+  "hIndex": 25,
+  "citationCount": 1224,
+  "subjectsTeaching": [
+    "Computer Fundamentals",
+    "Advanced Computer",
+    "Computer Laboratory"
+  ],
+  "teachingLoad": 14,
+  "administrativeRoles": [],
+  "professionalMemberships": [
+    {
+      "organization": "IEI",
+      "membershipType": "Professional",
+      "membershipId": "MEM80386",
+      "startDate": {
+        "$date": "2015-07-13T00:30:14.106Z"
+      },
+      "current": true,
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8b3"
+      }
+    }
+  ],
+  "awards": [],
+  "studentsGuided": {
+    "phd": 11,
+    "mtech": 19,
+    "btech": 31,
+    "ongoing": 2,
+    "completed": 26
+  },
+  "teachingRating": 4.1,
+  "researchRating": 3.1,
+  "serviceRating": 4.1,
+  "salary": {
+    "basic": 75176,
+    "allowances": 21632,
+    "total": 96808,
+    "payScale": "UGC Scale"
+  },
+  "leaveBalance": {
+    "casual": 12,
+    "earned": 30,
+    "medical": 12,
+    "maternity": 180
+  },
+  "profiles": {
+    "googleScholar": "https://scholar.google.com/citations?user=VidyaTripathi",
+    "researchGate": "https://www.researchgate.net/profile/Vidya_Tripathi",
+    "linkedin": "https://linkedin.com/in/vidya-tripathi",
+    "orcid": "0000-0007-0002-0004"
+  },
+  "isActive": true,
+  "bio": "Experienced Assistant Professor in Computer Science and Engineering with 15 years of academic and research experience.",
+  "officeLocation": "Room 216, Computer Science and Engineering Block",
+  "officeHours": "Mon-Fri: 10:00 AM - 5:00 PM",
+  "emergencyContact": {
+    "name": "Ramesh Tripathi",
+    "relationship": "Spouse",
+    "phone": "+91-9322912800",
+    "email": "emergency.vidya@gmail.com"
+  },
+  "coursesHandled": [],
+  "projects": [],
+  "consultancyProjects": [],
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-09-08T19:20:27.656Z"
+  },
+  "updatedAt": {
+    "$date": "2025-09-08T19:25:23.762Z"
+  },
+  "lastLogin": null,
+  "passwordHash": "$2b$10$FAlkX1IMNLmMloGKMSSjO.eiZQZFDQ5Km8Z/5A8/bvqu/6H0C4beu",
+  "role": "faculty"
+},
+{
+  "_id": {
+    "$oid": "68bf2c7bde342d1e2a7df8be"
+  },
+  "facultyId": "CSAE007",
+  "employeeId": "EMP67037",
+  "title": "Dr.",
+  "firstName": "Varun",
+  "lastName": "Kumar",
+  "email": "varun.kumar@computerscienceandengineering.university.edu",
+  "phone": "+91-7047665693",
+  "dateOfBirth": {
+    "$date": {
+      "$numberLong": "-212383172622"
+    }
+  },
+  "gender": "Male",
+  "nationality": "Indian",
+  "bloodGroup": "O-",
+  "maritalStatus": "Divorced",
+  "address": {
+    "street": "200 Park Street",
+    "city": "Visakhapatnam",
+    "state": "Gujarat",
+    "pincode": "625378",
+    "country": "India"
+  },
+  "department": "Computer Science and Engineering",
+  "designation": "Assistant Professor",
+  "employmentType": "Permanent",
+  "joiningDate": {
+    "$date": "2010-06-06T23:35:32.730Z"
+  },
+  "experience": {
+    "total": 15,
+    "teaching": 7,
+    "industry": 2,
+    "research": 8
+  },
+  "qualifications": [
+    {
+      "degree": "Ph.D",
+      "field": "Technology",
+      "university": "Anna University",
+      "year": 2003,
+      "grade": "First Class",
+      "specialization": "Research and Development",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8bf"
+      }
+    },
+    {
+      "degree": "M.E",
+      "field": "Technology",
+      "university": "Anna University",
+      "year": 1991,
+      "grade": "Distinction",
+      "specialization": "Applied Sciences",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8c0"
+      }
+    },
+    {
+      "degree": "B.Sc",
+      "field": "Engineering",
+      "university": "JNTU",
+      "year": 1983,
+      "grade": "Second Class",
+      "specialization": "Core Engineering",
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8c1"
+      }
+    }
+  ],
+  "researchAreas": [
+    "Machine Learning",
+    "Artificial Intelligence"
+  ],
+  "publications": {
+    "journals": 43,
+    "conferences": 59,
+    "books": 5,
+    "chapters": 14,
+    "patents": 8
+  },
+  "hIndex": 32,
+  "citationCount": 279,
+  "subjectsTeaching": [
+    "Computer Fundamentals",
+    "Advanced Computer",
+    "Computer Laboratory"
+  ],
+  "teachingLoad": 12,
+  "administrativeRoles": [
+    {
+      "position": "Coordinator",
+      "department": "Computer Science and Engineering",
+      "startDate": {
+        "$date": "2013-04-19T22:20:43.918Z"
+      },
+      "current": true,
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8c2"
+      }
+    }
+  ],
+  "professionalMemberships": [
+    {
+      "organization": "ACM",
+      "membershipType": "Professional",
+      "membershipId": "MEM69464",
+      "startDate": {
+        "$date": "2025-07-22T23:23:37.529Z"
+      },
+      "current": true,
+      "_id": {
+        "$oid": "68bf2c7bde342d1e2a7df8c3"
+      }
+    }
+  ],
+  "awards": [],
+  "studentsGuided": {
+    "phd": 13,
+    "mtech": 23,
+    "btech": 39,
+    "ongoing": 8,
+    "completed": 11
+  },
+  "teachingRating": 3,
+  "researchRating": 3.3,
+  "serviceRating": 4.5,
+  "salary": {
+    "basic": 67679,
+    "allowances": 37447,
+    "total": 105126,
+    "payScale": "UGC Scale"
+  },
+  "leaveBalance": {
+    "casual": 12,
+    "earned": 30,
+    "medical": 12,
+    "maternity": 180
+  },
+  "profiles": {
+    "googleScholar": "https://scholar.google.com/citations?user=VarunKumar",
+    "researchGate": "https://www.researchgate.net/profile/Varun_Kumar",
+    "linkedin": "https://linkedin.com/in/varun-kumar",
+    "orcid": "0000-0004-0005-0002"
+  },
+  "isActive": true,
+  "bio": "Experienced Assistant Professor in Computer Science and Engineering with 15 years of academic and research experience.",
+  "officeLocation": "Room 345, Computer Science and Engineering Block",
+  "officeHours": "Mon-Fri: 10:00 AM - 5:00 PM",
+  "emergencyContact": {
+    "name": "Divya Kumar",
+    "relationship": "Parent",
+    "phone": "+91-8085239698",
+    "email": "emergency.varun@gmail.com"
+  },
+  "coursesHandled": [],
+  "projects": [],
+  "consultancyProjects": [],
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-09-08T19:20:27.656Z"
+  },
+  "updatedAt": {
+    "$date": "2025-09-08T19:25:23.762Z"
+  },
+  "lastLogin": null,
+  "passwordHash": "$2b$10$FAlkX1IMNLmMloGKMSSjO.eiZQZFDQ5Km8Z/5A8/bvqu/6H0C4beu",
+  "role": "faculty"
+}]

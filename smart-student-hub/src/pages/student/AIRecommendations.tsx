@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -325,29 +326,34 @@ const AIRecommendations: React.FC = () => {
   };
 
   if (loading) {
-    return (
+  return (
+    <AppLayout>
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Brain className="h-12 w-12 animate-pulse mx-auto mb-4 text-blue-600" />
-          <p className="text-lg font-medium">Analyzing your data...</p>
-          <p className="text-sm text-gray-500">Generating personalized recommendations</p>
+          <Brain className="h-12 w-12 animate-pulse text-blue-600 mx-auto mb-4" />
+          <p className="text-lg font-medium">Loading AI Recommendations...</p>
+          <p className="text-gray-500">Analyzing your academic data</p>
         </div>
       </div>
-    );
-  }
+    </AppLayout>
+  );
+}
 
-  if (!recommendations) {
-    return (
+if (error && !recommendations) {
+  return (
+    <AppLayout>
       <Alert className="m-6">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
           Failed to load recommendations. Please try again later.
         </AlertDescription>
       </Alert>
-    );
-  }
+    </AppLayout>
+  );
+}
 
-  return (
+return (
+  <AppLayout>
     <div className="container mx-auto p-6 space-y-6">
       {/* Demo Data Alert */}
       {error && (
@@ -793,6 +799,7 @@ const AIRecommendations: React.FC = () => {
         </TabsContent>
       </Tabs>
     </div>
+    </AppLayout>
   );
 };
 

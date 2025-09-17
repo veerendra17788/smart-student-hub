@@ -52,9 +52,20 @@ const RegisterPage = () => {
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="flex items-center justify-center space-x-2 mb-4">
-            <GraduationCap className="h-10 w-10 text-white" />
-            <span className="text-3xl font-bold text-white">Smart Student Hub</span>
+          <Link to="/" className="flex items-center justify-center space-x-3 mb-4">
+            <img 
+              src="/logo-icon.svg" 
+              alt="Smart Student Hub Logo" 
+              className="h-12 w-12 filter brightness-0 invert"
+            />
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-bold text-white">
+                Smart Student Hub
+              </span>
+              <span className="text-sm text-white/70 font-medium">
+                Empowering Academic Excellence
+              </span>
+            </div>
           </Link>
           <p className="text-white/80">Join thousands of students managing their activities</p>
         </div>

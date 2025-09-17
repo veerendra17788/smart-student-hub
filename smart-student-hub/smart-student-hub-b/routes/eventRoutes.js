@@ -16,25 +16,34 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ✅ Get single event by ID
-router.get("/:id", async (req, res) => {
+// ✅ Analytics - MUST come before /:id route
+router.get("/analytics/summary", async (req, res) => {
   try {
-    let event;
-    
-    // Try to find by MongoDB ObjectId first
-    if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      event = await Event.findById(req.params.id);
-    } else {
-      // If not ObjectId, try to find by numeric id field
-      event = await Event.findOne({ id: parseInt(req.params.id) });
-    }
-    
-    if (!event) {
-      return res.status(404).json({ error: "Event not found" });
-    }
-    
-    res.json(event);
+    const totalEvents = await Event.countDocuments();
+    const totalAttendees = (await Event.aggregate([
+      { $project: { count: { $size: "$registrations" } } },
+      { $group: { _id: null, total: { $sum: "$count" } } }
+    ]))[0]?.total || 0;
+
+    const avgRating = (await Event.aggregate([
+      { $unwind: "$feedback" },
+      { $group: { _id: null, avg: { $avg: "$feedback.rating" } } }
+    ]))[0]?.avg || 0;
+
+    const pastEvents = await Event.find({ date: { $lt: new Date() } });
+    const attendanceRate = pastEvents.length > 0
+      ? Math.round((pastEvents.reduce((sum, e) => sum + (e.registrations?.length || 0), 0) /
+        pastEvents.reduce((sum, e) => sum + e.capacity, 0)) * 100)
+      : 0;
+
+    res.json({
+      totalEvents,
+      totalAttendees,
+      avgRating: avgRating.toFixed(1),
+      attendanceRate: `${attendanceRate}%`
+    });
   } catch (err) {
+    console.error('Analytics error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -62,6 +71,29 @@ router.get("/", async (req, res) => {
     res.json(events);
   } catch (err) {
     console.error('Error fetching events:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ✅ Get single event by ID
+router.get("/:id", async (req, res) => {
+  try {
+    let event;
+    
+    // Try to find by MongoDB ObjectId first
+    if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      event = await Event.findById(req.params.id);
+    } else {
+      // If not ObjectId, try to find by numeric id field
+      event = await Event.findOne({ id: parseInt(req.params.id) });
+    }
+    
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+    
+    res.json(event);
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
@@ -202,35 +234,5 @@ router.get("/:id/registrations", async (req, res) => {
   }
 });
 
-// ✅ Analytics
-router.get("/analytics/summary", async (req, res) => {
-  try {
-    const totalEvents = await Event.countDocuments();
-    const totalAttendees = (await Event.aggregate([
-      { $project: { count: { $size: "$registered" } } },
-      { $group: { _id: null, total: { $sum: "$count" } } }
-    ]))[0]?.total || 0;
-
-    const avgRating = (await Event.aggregate([
-      { $unwind: "$feedback" },
-      { $group: { _id: null, avg: { $avg: "$feedback.rating" } } }
-    ]))[0]?.avg || 0;
-
-    const pastEvents = await Event.find({ date: { $lt: new Date() } });
-    const attendanceRate = pastEvents.length > 0
-      ? Math.round((pastEvents.reduce((sum, e) => sum + e.registered.length, 0) /
-        pastEvents.reduce((sum, e) => sum + e.capacity, 0)) * 100)
-      : 0;
-
-    res.json({
-      totalEvents,
-      totalAttendees,
-      avgRating: avgRating.toFixed(1),
-      attendanceRate: `${attendanceRate}%`
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 module.exports = router;

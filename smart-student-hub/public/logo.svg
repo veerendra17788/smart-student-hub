@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" fill="none">
+  <defs>
+    <linearGradient id="modernGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1E293B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#475569;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main Logo Icon -->
+  <g transform="translate(10, 10)">
+    <!-- Background Circle -->
+    <circle cx="30" cy="30" r="28" fill="url(#modernGradient)" opacity="0.1" stroke="url(#modernGradient)" stroke-width="1"/>
+    
+    <!-- Central Hub Symbol -->
+    <circle cx="30" cy="30" r="10" fill="url(#modernGradient)" filter="url(#glow)"/>
+    <circle cx="30" cy="30" r="7" fill="white" opacity="0.9"/>
+    
+    <!-- Student Nodes -->
+    <g opacity="0.9">
+      <!-- Top Node -->
+      <circle cx="30" cy="8" r="4" fill="url(#accentGradient)"/>
+      <line x1="30" y1="12" x2="30" y2="20" stroke="url(#modernGradient)" stroke-width="2.5" stroke-linecap="round"/>
+      
+      <!-- Right Node -->
+      <circle cx="52" cy="30" r="4" fill="url(#accentGradient)"/>
+      <line x1="48" y1="30" x2="40" y2="30" stroke="url(#modernGradient)" stroke-width="2.5" stroke-linecap="round"/>
+      
+      <!-- Bottom Node -->
+      <circle cx="30" cy="52" r="4" fill="url(#accentGradient)"/>
+      <line x1="30" y1="48" x2="30" y2="40" stroke="url(#modernGradient)" stroke-width="2.5" stroke-linecap="round"/>
+      
+      <!-- Left Node -->
+      <circle cx="8" cy="30" r="4" fill="url(#accentGradient)"/>
+      <line x1="12" y1="30" x2="20" y2="30" stroke="url(#modernGradient)" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+    
+    <!-- Innovation Sparks -->
+    <g opacity="0.7">
+      <path d="M42 18 L45 15 L48 18 L45 21 Z" fill="#F59E0B"/>
+      <path d="M48 42 L51 39 L54 42 L51 45 Z" fill="#EF4444"/>
+      <path d="M12 42 L15 39 L18 42 L15 45 Z" fill="#10B981"/>
+      <path d="M18 12 L21 9 L24 12 L21 15 Z" fill="#8B5CF6"/>
+    </g>
+    
+    <!-- Central S Symbol -->
+    <text x="30" y="37" font-family="Inter, sans-serif" font-size="16" font-weight="800" text-anchor="middle" fill="url(#modernGradient)">S</text>
+  </g>
+  
+  <!-- Text -->
+  <g transform="translate(80, 20)">
+    <text x="0" y="20" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="800" fill="url(#textGradient)">Smart Student</text>
+    <text x="0" y="45" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="800" fill="url(#textGradient)">Hub</text>
+    
+    <!-- Modern Decorative Elements -->
+    <g opacity="0.5">
+      <rect x="140" y="12" width="3" height="12" rx="1.5" fill="url(#modernGradient)"/>
+      <rect x="147" y="18" width="3" height="6" rx="1.5" fill="url(#accentGradient)"/>
+      <rect x="154" y="8" width="3" height="18" rx="1.5" fill="url(#modernGradient)"/>
+      <circle cx="168" cy="18" r="3" fill="#F59E0B" opacity="0.7"/>
+      <circle cx="178" cy="24" r="2" fill="#10B981" opacity="0.7"/>
+    </g>
+  </g>
+</svg>
