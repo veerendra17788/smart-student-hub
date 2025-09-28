@@ -3,7 +3,7 @@ class ApiClient {
   private baseURL: string;
   private refreshPromise: Promise<boolean> | null = null;
 
-  constructor(baseURL: string = 'http://localhost:5000/api') {
+  constructor(baseURL: string = import.meta.env.VITE_API_URL || 'https://smart-student-hub-137x.onrender.com/api') {
     this.baseURL = baseURL;
   }
 
